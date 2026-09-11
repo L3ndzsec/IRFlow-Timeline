@@ -1,7 +1,7 @@
 {
   "name": "irflow-timeline",
   "version": "1.0.12",
-  "description": "SQLite-backed DFIR workspace for macOS. Large forensic datasets, native artifacts, AI application histories, and OS activity telemetry become searchable timelines with source provenance.",
+  "description": "SQLite-backed DFIR workspace for Windows and macOS. Large forensic datasets, native artifacts, AI application histories, and OS activity telemetry become searchable timelines with source provenance.",
   "main": "electron/main.js",
   "author": "DFIR Community",
   "license": "Apache-2.0",
@@ -9,7 +9,7 @@
     "node": ">=22.14.0"
   },
   "scripts": {
-    "dev": "concurrently \"vite\" \"TLE_DEV_SERVER=1 wait-on http://localhost:5173 && TLE_DEV_SERVER=1 electron .\"",
+    "dev": "concurrently \"vite\" \"wait-on http://localhost:5173 && cross-env TLE_DEV_SERVER=1 electron .\"",
     "build:renderer": "vite build",
     "start": "npm run build:renderer && electron .",
     "bundle:hayabusa": "bash scripts/bundle-hayabusa.sh",
@@ -20,6 +20,8 @@
     "dist:smoke": "npm run bundle:tools && npm run build:renderer && SKIP_NOTARIZE=1 CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --config electron-builder.config.cjs --mac",
     "dist:dmg": "npm run bundle:tools && npm run build:renderer && electron-builder --config electron-builder.config.cjs --mac dmg",
     "dist:universal": "npm run bundle:tools && npm run build:renderer && electron-builder --config electron-builder.config.cjs --mac --universal",
+    "dist:win": "npm run build:renderer && electron-builder --config electron-builder.config.cjs --win",
+    "dist:win:smoke": "npm run build:renderer && electron-builder --config electron-builder.config.cjs --win --publish never",
     "rebuild": "electron-rebuild -f -w better-sqlite3",
     "postinstall": "patch-package && electron-rebuild -f -w better-sqlite3",
     "smoke:electron": "electron scripts/smoke-electron-runtime.js",
@@ -34,7 +36,8 @@
     "@electron/rebuild": "^4.2.0",
     "@vitejs/plugin-react": "^4.3.4",
     "concurrently": "^9.1.0",
-    "electron": "^43.3.0",
+    "cross-env": "^10.1.0",
+    "electron": "^30.0.0",
     "electron-builder": "^26.15.3",
     "patch-package": "^8.0.1",
     "react": "^18.3.1",
@@ -46,7 +49,7 @@
   "dependencies": {
     "@ts-evtx/core": "^1.1.1",
     "@ts-evtx/messages": "^1.1.1",
-    "better-sqlite3": "^13.0.3",
+    "better-sqlite3": "^12.11.1",
     "csv-parser": "^3.0.0",
     "electron-updater": "^6.8.9",
     "exceljs": "^4.4.0",

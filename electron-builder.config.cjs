@@ -1,3 +1,5 @@
+const fs = require("fs");
+
 const updateBaseUrlRaw =
   process.env.IRFLOW_UPDATE_BASE_URL ||
   process.env.TLE_UPDATE_BASE_URL ||
@@ -9,6 +11,14 @@ const updateChannel =
   process.env.TLE_UPDATE_CHANNEL ||
   "latest";
 
+const extraResources = [];
+if (fs.existsSync("hayabusa")) {
+  extraResources.push({ from: "hayabusa", to: "hayabusa", filter: ["**/*", "!logs/**"] });
+}
+if (fs.existsSync("tools/bmc-tools")) {
+  extraResources.push({ from: "tools/bmc-tools", to: "tools/bmc-tools", filter: ["**/*"] });
+}
+
 const config = {
   appId: "com.dfir.irflow-timeline",
   productName: "IRFlow Timeline",
@@ -19,11 +29,9 @@ const config = {
     category: "public.app-category.developer-tools",
     icon: "assets/icon.icns",
     minimumSystemVersion: "12.0",
-    // Hayabusa is already universal, while better-sqlite3 13 ships architecture-named
-    // Darwin prebuilds in both sub-builds. @electron/universal refuses identical Mach-O
-    // files unless they are explicitly allowed, so copy these known, self-identifying
-    // files through while it merges the rest of the application normally.
-    x64ArchFiles: "**/{hayabusa/hayabusa,node_modules/better-sqlite3/prebuilds/darwin-*.node}",
+    // Hayabusa is already universal; @electron/universal refuses identical Mach-O
+    // files unless they are explicitly allowed, so copy through while merging.
+    x64ArchFiles: "**/{hayabusa/hayabusa}",
     target: [
       {
         target: "dmg",
@@ -40,10 +48,24 @@ const config = {
     entitlements: "entitlements.mac.plist",
     entitlementsInherit: "entitlements.mac.plist",
   },
-  afterSign: "scripts/notarize.js",
-  // Notarizes + staples the DMG itself. afterSign only reaches the .app, which
-  // left the downloaded disk image unsigned and Gatekeeper-rejected.
-  afterAllArtifactBuild: "scripts/notarize-dmg.js",
+  // Notarization hooks are macOS-only — skipped on Windows builds
+  ...(process.platform === "darwin" ? {
+    afterSign: "scripts/notarize.js",
+    afterAllArtifactBuild: "scripts/notarize-dmg.js",
+  } : {}),
+  win: {
+    target: [{ target: "nsis", arch: ["x64"] }],
+    // Use the SVG icon; electron-builder will rasterize it for Windows
+    icon: "assets/icon.svg",
+  },
+  nsis: {
+    oneClick: false,
+    allowElevation: true,
+    allowToChangeInstallationDirectory: true,
+    createDesktopShortcut: true,
+    createStartMenuShortcut: true,
+    shortcutName: "IRFlow Timeline",
+  },
   electronUpdaterCompatibility: ">=2.16",
   dmg: {
     title: "IRFlow Timeline",
@@ -57,18 +79,7 @@ const config = {
     "electron/**/*",
     "assets/**/*",
   ],
-  extraResources: [
-    {
-      from: "hayabusa",
-      to: "hayabusa",
-      filter: ["**/*", "!logs/**"],
-    },
-    {
-      from: "tools/bmc-tools",
-      to: "tools/bmc-tools",
-      filter: ["**/*"],
-    },
-  ],
+  extraResources,
   asarUnpack: [
     "node_modules/better-sqlite3/**",
   ],

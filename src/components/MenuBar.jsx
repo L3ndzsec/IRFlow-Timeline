@@ -1,3 +1,5 @@
+// Windows port — modified from original by Renzon Cruz (https://github.com/r3nzsec/irflow-timeline).
+// Licensed under the Apache License 2.0.
 import { Fragment, useEffect, useState } from "react";
 import useUIStore from "../store/useUIStore.js";
 import useTabStore from "../store/useTabStore.js";
@@ -411,9 +413,8 @@ export default function MenuBar({
         { label: "USN Journal Analysis", icon: ic(<><rect x="3" y="3" width="18" height="18" rx="2" fill={(th.accent) + "14"}/><path d="M7 7h10M7 11h10M7 15h6"/><circle cx="17" cy="15" r="2" fill={th.warning} stroke="none" opacity="0.7"/></>), action: () => { if (ct?.dataReady) setModal(openUsnAnalysisModal()); }, disabled: !ct?.dataReady || ct?.sourceFormat !== "raw-usnjrnl" },
       ] },
       ] },
-      { group: "Coming soon", badge: "3 platforms", comingSoon: true, icon: ic(<><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></>, th.textMuted), items: [
+      { group: "Coming soon", badge: "2 platforms", comingSoon: true, icon: ic(<><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></>, th.textMuted), items: [
         { label: "Linux artifact analyzers", detail: "auth, shell history, persistence, auditd, SSH", icon: ic(<><rect x="3" y="4" width="18" height="13" rx="2"/><polyline points="7 9 10 11.5 7 14"/><line x1="12" y1="14" x2="16" y2="14"/></>, th.textMuted), disabled: true, comingSoon: true },
-        { label: "macOS artifact analyzers", detail: "unified logs, persistence, FSEvents, quarantine, TCC", icon: ic(<><circle cx="12" cy="12" r="8"/><path d="M12 8v8M8 12h8"/></>, th.textMuted), disabled: true, comingSoon: true },
         { label: "Cloud log analyzers", detail: "AWS, Azure, M365, GCP, Okta", icon: ic(<><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></>, th.textMuted), disabled: true, comingSoon: true },
       ] },
       { section: "Export" },
@@ -546,17 +547,17 @@ export default function MenuBar({
     return [{ ...item, category: ["Tools", ...trail].join(" › ") }];
   });
   const commandItems = [
-    { category: "File", label: "Open", shortcut: "⌘O", action: () => tle?.openFileDialog() },
+    { category: "File", label: "Open", shortcut: "Ctrl+O", action: () => tle?.openFileDialog() },
     { category: "File", label: "Open Triage Collection", action: () => setModal(openTriageCollectionModal()) },
-    { category: "File", label: "Export", shortcut: "⌘E", action: handleExport, disabled: !ct?.dataReady },
-    { category: "File", label: "Save Session", shortcut: "⌘S", action: handleSaveSession, disabled: tabs.length === 0 },
-    { category: "File", label: "Load Session", shortcut: "⇧⌘O", action: handleLoadSession },
-    { category: "File", label: "Close Tab", shortcut: "⌘W", action: () => { if (ct) closeTab(ct.id); }, disabled: !ct },
+    { category: "File", label: "Export", shortcut: "Ctrl+E", action: handleExport, disabled: !ct?.dataReady },
+    { category: "File", label: "Save Session", shortcut: "Ctrl+S", action: handleSaveSession, disabled: tabs.length === 0 },
+    { category: "File", label: "Load Session", shortcut: "Ctrl+Shift+O", action: handleLoadSession },
+    { category: "File", label: "Close Tab", shortcut: "Ctrl+W", action: () => { if (ct) closeTab(ct.id); }, disabled: !ct },
     ...buildViewItems().filter((item) => item.label).map((item) => ({ ...item, category: "View" })),
     ...buildActionsItems().filter((item) => item.label).map((item) => ({ ...item, category: "Actions" })),
     ...flattenToolCommands(buildToolsItems()),
     { category: "Help", label: "Quick Help", action: () => setModal(openSimpleModal("quickHelp")) },
-    { category: "Help", label: "Keyboard Shortcuts", shortcut: "⌘/", action: () => setModal(openSimpleModal("shortcuts")) },
+    { category: "Help", label: "Keyboard Shortcuts", shortcut: "Ctrl+/", action: () => setModal(openSimpleModal("shortcuts")) },
     { category: "Help", label: checkingForUpdates ? "Checking for Updates..." : "Check for Updates", action: handleCheckForUpdates, disabled: checkingForUpdates },
   ];
   const normalizedCommandQuery = commandQuery.trim().toLocaleLowerCase();
@@ -596,19 +597,19 @@ export default function MenuBar({
             {backdrop(() => setFileMenuOpen(false))}
             <div style={ddStyle} role="menu" ref={focusFirstMenuItem} onKeyDown={menuKeyDown}>
               {[
-                { label: "Open", shortcut: "⌘O", action: async () => {
+                { label: "Open", shortcut: "Ctrl+O", action: async () => {
                   const r = await tle?.openFileDialog();
                   handleOpenFileDialogResult(tle, setModal, r);
                 } },
                 { label: "Open Triage Collection…", action: () => setModal(openTriageCollectionModal()) },
-                { label: "Export", shortcut: "⌘E", action: handleExport, disabled: !ct?.dataReady },
+                { label: "Export", shortcut: "Ctrl+E", action: handleExport, disabled: !ct?.dataReady },
                 { type: "separator" },
-                { label: "Save Session", shortcut: "⌘S", action: handleSaveSession, disabled: tabs.length === 0 },
-                { label: "Load Session", shortcut: "⇧⌘O", action: handleLoadSession },
+                { label: "Save Session", shortcut: "Ctrl+S", action: handleSaveSession, disabled: tabs.length === 0 },
+                { label: "Load Session", shortcut: "Ctrl+Shift+O", action: handleLoadSession },
                 { type: "separator" },
                 { label: "Open Recent", submenu: true },
                 { type: "separator" },
-                { label: "Close Tab", shortcut: "⌘W", action: () => { if (ct) closeTab(ct.id); }, disabled: !ct },
+                { label: "Close Tab", shortcut: "Ctrl+W", action: () => { if (ct) closeTab(ct.id); }, disabled: !ct },
                 { label: "Close All Tabs", action: () => { setTabs((prev) => { prev.forEach((t) => tle.closeTab(t.id)); return []; }); setActiveTab(null); }, disabled: tabs.length === 0 },
                 { type: "separator" },
                 { label: "Exit", action: () => window.close() },
@@ -703,12 +704,11 @@ export default function MenuBar({
             {backdrop(() => setHelpMenuOpen(false))}
             <div style={ddStyle} role="menu" ref={focusFirstMenuItem} onKeyDown={menuKeyDown}>
               {[
-                { label: "Command Palette", shortcut: "⌘K", icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={th.accent} strokeWidth="1.8" strokeLinecap="round"><circle cx="11" cy="11" r="7"/><line x1="16" y1="16" x2="21" y2="21"/></svg>, action: () => { setCommandQuery(""); setCommandActiveIndex(0); setCommandPaletteOpen(true); } },
+                { label: "Command Palette", shortcut: "Ctrl+K", icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={th.accent} strokeWidth="1.8" strokeLinecap="round"><circle cx="11" cy="11" r="7"/><line x1="16" y1="16" x2="21" y2="21"/></svg>, action: () => { setCommandQuery(""); setCommandActiveIndex(0); setCommandPaletteOpen(true); } },
                 { label: "Quick Help", icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={th.accent} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>, action: () => setModal(openSimpleModal("quickHelp")) },
-                { label: "Keyboard Shortcuts", shortcut: "⌘/", icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={th.accent} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M6 12h.01M18 12h.01M8 16h8"/></svg>, action: () => setModal(openSimpleModal("shortcuts")) },
+                { label: "Keyboard Shortcuts", shortcut: "Ctrl+/", icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={th.accent} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M6 12h.01M18 12h.01M8 16h8"/></svg>, action: () => setModal(openSimpleModal("shortcuts")) },
                 { label: checkingForUpdates ? "Checking for Updates" : "Check for Updates", icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={th.accent} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><polyline points="21 3 21 9 15 9"/></svg>, action: handleCheckForUpdates },
                 { type: "separator" },
-                { label: "Website", icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={th.accent} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>, action: () => window.open("https://r3nzsec.github.io/irflow-timeline/", "_blank") },
                 { label: "About IRFlow Timeline", icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={th.accent} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>, action: () => setModal(openSimpleModal("about")) },
               ].map((item, i) => {
                 if (item.type === "separator") return <div key={`sep-${i}`} style={{ height: 1, background: th.border, margin: "4px 12px" }} />;

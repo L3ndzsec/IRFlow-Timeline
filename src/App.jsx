@@ -1,3 +1,5 @@
+// Windows port — modified from original by Renzon Cruz (https://github.com/r3nzsec/irflow-timeline).
+// Licensed under the Apache License 2.0.
 import { lazy, Suspense, useState, useEffect, useRef, useCallback, useMemo, Fragment } from "react";
 import { createPortal } from "react-dom";
 // ── Extracted constants ──────────────────────────────────────────
@@ -533,7 +535,24 @@ export default function App() {
   }, [tle, setModal]);
   const runImportPaths = useCallback(async (paths) => {
     if (!tle || !paths?.length) return;
-    const r = await tle.importFiles(paths);
+    console.log("[IRFlow] runImportPaths →", paths);
+    tle.debugLog?.({ scope: "DROP", message: "runImportPaths", data: { paths } });
+    let r;
+    try {
+      r = await tle.importFiles(paths);
+    } catch (err) {
+      console.error("[IRFlow] importFiles IPC threw:", err);
+      tle.debugLog?.({ scope: "DROP", message: "importFiles threw", data: { error: String(err?.message || err) } });
+      toast.error("Import failed", { detail: String(err?.message || err) });
+      return;
+    }
+    if (r?.__ipcError) {
+      console.error("[IRFlow] importFiles returned __ipcError:", r.message);
+      tle.debugLog?.({ scope: "DROP", message: "importFiles __ipcError", data: { error: r.message } });
+      toast.error("Import failed", { detail: r.message || "Unknown IPC error" });
+      return;
+    }
+    console.log("[IRFlow] importFiles result →", r);
     if (r?.scopePending) handleOpenFileDialogResult(tle, setModal, r);
   }, [tle, setModal]);
   const th = THEMES[themeName];
@@ -3247,7 +3266,7 @@ export default function App() {
       if (mod && e.shiftKey && e.key === "O") { e.preventDefault(); handleLoadSessionRef.current?.(); }
       if (mod && e.key === "o") { e.preventDefault(); runOpenFileDialog(); }
       if (mod && e.key === "f" && !e.shiftKey) { e.preventDefault(); document.getElementById("gs")?.focus(); }
-      if (mod && e.shiftKey && e.key === "f") { e.preventDefault(); setModal(openSimpleModal("crossfind")); }
+      if (mod && e.shiftKey && e.key === "F") { e.preventDefault(); setModal(openSimpleModal("crossfind")); }
       if (mod && e.key === "e") { e.preventDefault(); handleExport(); }
       if (mod && e.key === "b") { e.preventDefault(); if (ct) up("showBookmarkedOnly", !ct.showBookmarkedOnly); }
       if (mod && e.key === "r") { e.preventDefault(); resetColumnWidthsRef.current?.(); }
@@ -3270,6 +3289,12 @@ export default function App() {
         }
       }
       if (mod && (e.key === "?" || e.key === "/")) { e.preventDefault(); setModal(openSimpleModal("shortcuts")); return; }
+      if (mod && e.shiftKey && e.key === "Q") { e.preventDefault(); setTabs((prev) => { prev.forEach((t) => tle?.closeTab(t.id)); return []; }); setActiveTab(null); return; }
+      if (mod && e.shiftKey && e.key === "R") { e.preventDefault(); const cur = ctRef.current; if (cur?.dataReady) tle?.generateReport(cur.id, cur.name, cur.tagColors || {}, cur.vtEnrichment || null); return; }
+      if (mod && e.shiftKey && e.key === "C") { e.preventDefault(); setColMgrSearch(""); setModal(openSimpleModal("columns")); return; }
+      if (mod && e.shiftKey && e.key === "L") { e.preventDefault(); setModal(openSimpleModal("colors")); return; }
+      if (mod && (e.key === "+" || e.key === "=")) { e.preventDefault(); setFontSize((f) => Math.min(f + 1, 20)); return; }
+      if (mod && e.key === "-" && !e.shiftKey) { e.preventDefault(); setFontSize((f) => Math.max(f - 1, 8)); return; }
       // ⌘⇧A / Ctrl+Shift+A — select an entire column (toggle). Targets the open column
       // menu's column, else the sorted column, else the first visible column.
       if (mod && e.shiftKey && (e.key === "A" || e.key === "a") && ct) {
@@ -3424,7 +3449,7 @@ export default function App() {
       <div onContextMenu={(e) => e.preventDefault()} style={{ display: "flex", height: "100vh", background: th.bg, fontFamily: "'SF Mono',Menlo,monospace", WebkitAppRegion: "drag", overflow: "hidden", position: "relative" }}
         onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = "copy"; setDragOver(true); }}
         onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget)) setDragOver(false); }}
-        onDrop={(e) => { e.preventDefault(); setDragOver(false); pendingCapabilityRef.current = null; /* drag = "just open", not a tile launch → drop any armed capability so it can't fire on this import */ const files = [...e.dataTransfer.files]; if (files.length > 0 && tle) { const paths = files.map((f) => tle.getPathForFile(f)).filter(Boolean); if (paths.length > 0) runImportPaths(paths); } }}>
+        onDrop={(e) => { e.preventDefault(); setDragOver(false); pendingCapabilityRef.current = null; const files = [...e.dataTransfer.files]; if (files.length > 0 && tle) { try { const paths = files.map((f) => { const p = f.path || tle.getPathForFile(f); console.log("[IRFlow] drop file:", f.name, "path:", p); return p; }).filter(Boolean); console.log("[IRFlow] drop resolved paths:", paths); tle.debugLog?.({ scope: "DROP", message: "home onDrop", data: { paths, fileCount: files.length } }); if (paths.length > 0) runImportPaths(paths); else { console.error("[IRFlow] drop: no paths resolved from", files.length, "files"); tle.debugLog?.({ scope: "DROP", message: "no paths resolved", data: { fileCount: files.length } }); } } catch(err) { console.error("[IRFlow] drop handler error:", err); tle.debugLog?.({ scope: "DROP", message: "drop handler threw", data: { error: String(err?.message || err) } }); alert("Drop error: " + (err?.message || String(err))); } } }}>
         <div style={{ width: 360, flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "stretch", padding: "26px 24px 18px", borderRight: `1px solid ${th.border}`, background: th.panelBg, overflowY: "auto", WebkitAppRegion: "no-drag", zIndex: 2 }}>
           {/* IRFlow Logo — shield with timeline pulse */}
           <svg width="52" height="59" viewBox="0 0 64 72" fill="none" style={{ marginBottom: 14 }}>
@@ -3443,7 +3468,7 @@ export default function App() {
             <line x1="32" y1="20" x2="34.5" y2="20" stroke={th.accent} strokeWidth="1.2" opacity="0.7" strokeLinecap="round" />
           </svg>
           <h1 style={{ fontSize: 24, fontWeight: 700, color: th.text, margin: 0, fontFamily: "-apple-system, 'SF Pro Display', sans-serif", letterSpacing: "-0.01em" }}>IRFlow <span style={{ color: th.accent }}>Timeline</span></h1>
-          <p style={{ color: th.textDim, fontSize: 14, letterSpacing: "0.14em", textTransform: "uppercase", margin: "10px 0 6px", fontWeight: 600 }}>DFIR Timeline Analysis for macOS</p>
+          <p style={{ color: th.textDim, fontSize: 14, letterSpacing: "0.14em", textTransform: "uppercase", margin: "10px 0 6px", fontWeight: 600 }}>DFIR Timeline Analysis for Windows</p>
           <div style={{ display: "flex", flexDirection: "column", gap: 10, alignItems: "stretch", width: "100%", marginTop: 26, WebkitAppRegion: "no-drag" }}>
             <button onClick={() => runOpenFileDialog()} style={{ padding: "14px 48px", background: th.primaryBtn, color: "#fff", border: "none", borderRadius: 8, fontSize: 16, fontWeight: 600, cursor: "pointer", fontFamily: "-apple-system, sans-serif" }}
               onMouseEnter={(e) => { e.currentTarget.style.filter = "brightness(1.1)"; }}
@@ -3496,8 +3521,7 @@ export default function App() {
             </div>
           )}
 
-          <p style={{ color: th.textMuted, fontSize: 11, marginTop: "auto", paddingTop: 20 }}>⌘O open · ⌘F search · ⌘B bookmarks · ⌘E export</p>
-          <p style={{ color: th.textMuted, fontSize: 11, marginTop: 20, fontFamily: "-apple-system, sans-serif" }}>Created by <span style={{ color: th.textDim }}>Renzon Cruz</span> | <span style={{ color: th.accent }}>@r3nzsec</span></p>
+          <p style={{ color: th.textMuted, fontSize: 11, marginTop: "auto", paddingTop: 20 }}>Ctrl+O open · Ctrl+F search · Ctrl+B bookmarks · Ctrl+E export</p>
         </div>
 
         {/* ── MAIN CANVAS — capability command center over a faint, honest data motif ── */}
@@ -3623,7 +3647,7 @@ export default function App() {
     <div onContextMenu={(e) => e.preventDefault()}
       onDragOver={(e) => { if (!e.dataTransfer.types.includes("Files")) return; e.preventDefault(); e.dataTransfer.dropEffect = "copy"; setDragOver(true); }}
       onDragLeave={(e) => { if (e.currentTarget.contains(e.relatedTarget)) return; setDragOver(false); }}
-      onDrop={(e) => { if (!e.dataTransfer.types.includes("Files")) return; e.preventDefault(); setDragOver(false); const files = [...e.dataTransfer.files]; if (files.length > 0 && tle) { const paths = files.map((f) => tle.getPathForFile(f)).filter(Boolean); if (paths.length > 0) runImportPaths(paths); } }}
+      onDrop={(e) => { if (!e.dataTransfer.types.includes("Files")) return; e.preventDefault(); setDragOver(false); const files = [...e.dataTransfer.files]; if (files.length > 0 && tle) { try { const paths = files.map((f) => { const p = f.path || tle.getPathForFile(f); console.log("[IRFlow] drop file:", f.name, "path:", p); return p; }).filter(Boolean); console.log("[IRFlow] drop resolved paths:", paths); tle.debugLog?.({ scope: "DROP", message: "grid onDrop", data: { paths, fileCount: files.length } }); if (paths.length > 0) runImportPaths(paths); else { console.error("[IRFlow] drop: no paths resolved from", files.length, "files"); tle.debugLog?.({ scope: "DROP", message: "no paths resolved", data: { fileCount: files.length } }); } } catch(err) { console.error("[IRFlow] drop handler error:", err); tle.debugLog?.({ scope: "DROP", message: "drop handler threw", data: { error: String(err?.message || err) } }); alert("Drop error: " + (err?.message || String(err))); } } }}
       style={{ display: "flex", flexDirection: "column", height: "100vh", background: th.bg, color: th.text, fontFamily: "'SF Mono','Fira Code',Menlo,monospace", fontSize: fontSize, overflow: "hidden" }}>
       <style>{`
         :root {
@@ -4071,18 +4095,6 @@ export default function App() {
               <p style={{ margin: 0, fontSize: 12, color: th.text, lineHeight: 1.6, fontFamily: "-apple-system, sans-serif" }}>
                 Investigate with Sigma and Hayabusa, process trees, lateral movement, persistence, ransomware and NTFS analytics, secret hunting, IOC and VirusTotal, RDP bitmap cache, tags, and reports. Computer History adds fidelity tiers, credential-entry timing, deletion recovery, and host attribution.
               </p>
-            </div>
-            <div style={{ marginBottom: 16 }}>
-              <div style={{ fontSize: 13, fontWeight: 600, color: th.text, marginBottom: 8, fontFamily: "-apple-system, sans-serif" }}>Author</div>
-              <div style={{ fontSize: 13, color: th.text, marginBottom: 6, fontFamily: "-apple-system, sans-serif" }}>Renzon Cruz</div>
-              <div style={{ display: "flex", justifyContent: "center", gap: 16 }}>
-                <a href="#" onClick={(e) => { e.preventDefault(); window.tle?.openExternal("https://www.linkedin.com/in/renzoncruz"); }}
-                  style={{ fontSize: 12, color: th.accent, textDecoration: "none", cursor: "pointer", fontFamily: "-apple-system, sans-serif" }}>LinkedIn</a>
-                <a href="#" onClick={(e) => { e.preventDefault(); window.tle?.openExternal("https://x.com/r3nzsec"); }}
-                  style={{ fontSize: 12, color: th.accent, textDecoration: "none", cursor: "pointer", fontFamily: "-apple-system, sans-serif" }}>Twitter</a>
-                <a href="#" onClick={(e) => { e.preventDefault(); window.tle?.openExternal("https://github.com/r3nzsec/irflow-timeline"); }}
-                  style={{ fontSize: 12, color: th.accent, textDecoration: "none", cursor: "pointer", fontFamily: "-apple-system, sans-serif" }}>GitHub</a>
-              </div>
             </div>
             <button onClick={() => setModal(null)} style={ms.bp}>OK</button>
           </div>

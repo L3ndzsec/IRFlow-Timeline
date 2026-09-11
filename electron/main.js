@@ -4,6 +4,9 @@
  * Coordinates between the renderer (React UI) and the backend
  * (SQLite DB + streaming parser). All data operations happen here
  * in the main process, with results sent to renderer via IPC.
+ *
+ * Windows port — modified from original by Renzon Cruz (https://github.com/r3nzsec/irflow-timeline).
+ * Licensed under the Apache License 2.0.
  */
 
 const { app, BrowserWindow, crashReporter, dialog, ipcMain, shell } = require("electron");
@@ -437,14 +440,15 @@ app.on("open-file", (event, filePath) => {
 
 // ── Window ─────────────────────────────────────────────────────────
 function createWindow() {
+  const isMac = process.platform === "darwin";
   mainWindow = new BrowserWindow({
     width: 1500,
     height: 950,
     minWidth: 900,
     minHeight: 600,
-    titleBarStyle: "hiddenInset",
-    trafficLightPosition: { x: 16, y: 16 },
-    vibrancy: "under-window",
+    titleBarStyle: isMac ? "hiddenInset" : "hidden",
+    ...(isMac ? { trafficLightPosition: { x: 16, y: 16 } } : {}),
+    ...(isMac ? { vibrancy: "under-window" } : {}),
     backgroundColor: "#0f1114",
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
@@ -500,6 +504,7 @@ function createWindow() {
 
   mainWindow.once("ready-to-show", () => {
     mainWindow.show();
+    if (isDev) mainWindow.webContents.openDevTools({ mode: "detach" });
     fatalRecovery.markStableStartup();
     if (app.pendingFilePath) {
       enqueueImport(app.pendingFilePath);

@@ -55,7 +55,7 @@ export default function QuickHelpModal() {
 
         <S>Column Filters</S>
         <P>Each column has a text filter input and a dropdown (▼) for value-based checkbox filtering. Filters can be combined across columns. Use the toggle button to temporarily disable individual filters without clearing them.</P>
-        <Li><b>Filter in / Filter out</b> — Right-click any cell or <K>⌘</K>+Click to quickly filter. "Filter in" shows only rows matching that value; "Filter out" excludes rows with that value.</Li>
+        <Li><b>Filter in / Filter out</b> — Right-click any cell or <K>Ctrl</K>+Click to quickly filter. "Filter in" shows only rows matching that value; "Filter out" excludes rows with that value.</Li>
         <Li><b>Date range filter</b> — Click the ⏱ icon on timestamp columns to filter by date range.</Li>
         <Li><b>Advanced filter</b> — Use "Edit Filter" in the status bar for complex AND/OR filter logic.</Li>
 
@@ -64,7 +64,7 @@ export default function QuickHelpModal() {
 
         <S>Tagging & Bookmarks</S>
         <Li><b>Tags</b> — Right-click any row to add colored tags via the Tags submenu. Select multiple rows (checkboxes) first to apply a tag to all selected rows at once. Tags are searchable, filterable, and visible in the Tags column.</Li>
-        <Li><b>Bookmarks</b> — Click the bookmark icon (flag) on any row. Use <K>⌘B</K> to toggle "Flagged Only" view.</Li>
+        <Li><b>Bookmarks</b> — Click the bookmark icon (flag) on any row. Use <K>Ctrl+B</K> to toggle "Flagged Only" view.</Li>
         <Li><b>Bulk tagging</b> — Use Bulk Actions to tag all filtered/visible rows at once, or tag by time ranges from the histogram.</Li>
         <Li><b>IOC tagging</b> — Load IOC files (CSV, XLSX, TSV) and auto-tag matching rows with per-IOC tags.</Li>
 
@@ -92,11 +92,11 @@ export default function QuickHelpModal() {
         <S>Tips</S>
         <Li>Drag column headers to reorder. Double-click a header divider to auto-fit column width.</Li>
         <Li>Right-click column headers for options: pin, hide, group, sort, stacking, stats. Right-click cells for copy, filter in/out, tags, and VT lookup.</Li>
-        <Li><K>⌘</K>+Click any cell to quickly access Filter in, Filter out, and Hide column.</Li>
-        <Li><K>⌘C</K> copies selected rows as tab-separated text (with headers). Works in both normal and grouped mode.</Li>
+        <Li><K>Ctrl</K>+Click any cell to quickly access Filter in, Filter out, and Hide column.</Li>
+        <Li><K>Ctrl+C</K> copies selected rows as tab-separated text (with headers). Works in both normal and grouped mode.</Li>
         <Li>Double-click any cell to see its full content in a popup.</Li>
         <Li>Drop files directly onto the window to import them.</Li>
-        <Li><K>⌘K</K> opens the command palette so you can search available File, View, Actions, Tools, and Help commands.</Li>
+        <Li><K>Ctrl+K</K> opens the command palette so you can search available File, View, Actions, Tools, and Help commands.</Li>
         <Li>The status bar (bottom) shows active filters, row counts, and sort state. Click the file path to copy it.</Li>
         <Li>IRFlow Timeline checks for updates automatically; use <b>Help ▸ Check for Updates…</b> to check on demand and install with one click.</Li>
       </div>
