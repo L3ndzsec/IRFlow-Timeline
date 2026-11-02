@@ -163,8 +163,8 @@ function wrapDownloadError(err) {
       "Failed to download Hayabusa: your network uses TLS inspection (self-signed certificate in chain). " +
       "Hayabusa is bundled with the app — if you see this the bundled binary could not be located. " +
       "Try restarting the app; if the problem persists, manually install Hayabusa from " +
-      "https://github.com/Yamato-Security/hayabusa/releases and place it at " +
-      "~/Library/Application Support/irflow-timeline/hayabusa/hayabusa."
+      "https://github.com/Yamato-Security/hayabusa/releases and place the binary in " +
+      "the hayabusa folder inside the app's userData directory."
     );
   }
   if (/ENOTFOUND|ECONNREFUSED|ETIMEDOUT|network/i.test(msg)) {

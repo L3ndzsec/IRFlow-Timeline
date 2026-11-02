@@ -83,7 +83,8 @@ function registerSessionHandlers(safeHandle, safeSend, ctx) {
 
   // A dropped/opened directory passes existsSync, so without this guard it reaches parseFile(),
   // matches no extension rule, and dies in parseCSVStream with a raw "EISDIR: illegal operation
-  // on a directory". Directory ingest is not supported yet; say so instead of leaking errno.
+  // on a directory". Triage collections use File → Open Triage Collection; AI history folders
+  // carry opts.aiHistoryTool and pass through. All other directories are rejected here.
   function isDirectorySafe(p) {
     try { return fs.statSync(p).isDirectory(); } catch { return false; }
   }
@@ -106,7 +107,7 @@ function registerSessionHandlers(safeHandle, safeSend, ctx) {
     const names = skippedDirs.map((p) => path.basename(p));
     const label = names.length === 1 ? `"${names[0]}" is a folder` : `${names.length} folders were skipped`;
     safeSend("import-error", {
-      error: `${label}. Folder import is not supported yet — open the individual files inside it (e.g. the .evtx files under Windows/System32/winevt/logs).`,
+      error: `${label}. To open a KAPE or triage collection use File → Open Triage Collection… — or open individual files (EVTX, CSV, $MFT, etc.) directly.`,
     });
   }
 
@@ -143,7 +144,7 @@ function registerSessionHandlers(safeHandle, safeSend, ctx) {
       authorizeAiArtifactPick(filePath);
       const { supported, skippedDirs } = partitionUnsupportedDirectories(planImportPaths([filePath]));
       if (skippedDirs.length) {
-        return { error: `"${path.basename(filePath)}" is a folder. Folder import is not supported yet — open the individual files inside it.` };
+        return { error: `"${path.basename(filePath)}" is a folder. Use File → Open Triage Collection… to open a KAPE or triage bundle.` };
       }
       const { scopePending } = enqueuePlannedImports(supported, enqueueImport);
       if (scopePending.length) return { scopePending };

@@ -108,6 +108,12 @@ if (updateBaseUrl) {
       useMultipleRangeRequest: false,
     },
   ];
+} else {
+  // No update URL configured — set publish to null so electron-builder does
+  // not auto-detect the git remote and write a stale app-update.yml into the
+  // package. Without this the updater points at the upstream macOS repo and
+  // logs a 404 on every launch.
+  config.publish = null;
 }
 
 module.exports = config;

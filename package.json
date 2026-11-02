@@ -9,7 +9,7 @@
     "node": ">=22.14.0"
   },
   "scripts": {
-    "dev": "concurrently \"vite\" \"wait-on http://localhost:5173 && cross-env TLE_DEV_SERVER=1 electron .\"",
+    "dev": "concurrently \"vite\" \"wait-on http://localhost:5200 && cross-env TLE_DEV_SERVER=1 electron .\"",
     "build:renderer": "vite build",
     "start": "npm run build:renderer && electron .",
     "bundle:hayabusa": "bash scripts/bundle-hayabusa.sh",

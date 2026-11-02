@@ -57,7 +57,7 @@ export function Overlay({ th, children, label = "Dialog" }) {
   }, []);
 
   return (
-    <div style={{ position: "fixed", inset: 0, background: th.overlay, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100, backdropFilter: "blur(4px)", WebkitBackdropFilter: "blur(4px)", WebkitAppRegion: "drag", animation: "tle-overlay-in var(--m-fast) var(--ease-out-soft)" }}>
+    <div style={{ position: "fixed", inset: 0, background: th.overlay, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100, backdropFilter: "blur(4px)", WebkitBackdropFilter: "blur(4px)", WebkitAppRegion: "no-drag", animation: "tle-overlay-in var(--m-fast) var(--ease-out-soft)" }}>
       <div ref={dialogRef} role="dialog" aria-modal="true" aria-label={label} tabIndex={-1}
         style={{ background: th.modalBg + "f2", border: `1px solid ${th.glassBorder}`, borderRadius: 12, padding: 24, width: 480, maxWidth: "92vw", maxHeight: "80vh", overflow: "auto", backdropFilter: "blur(40px) saturate(1.6)", WebkitBackdropFilter: "blur(40px) saturate(1.6)", boxShadow: "0 24px 80px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.04) inset", WebkitAppRegion: "no-drag", animation: "tle-modal-in var(--m-modal) var(--ease-out)" }}>
         {children}

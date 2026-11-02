@@ -19,7 +19,7 @@ const TimelineDB = require("./db");
 const { getXLSXSheets, extractResidentData } = require("./parsers");
 const { createUpdateController } = require("./updater");
 const { JobManager } = require("./jobs/job-manager");
-const { resolveTempDir } = require("./utils/temp-dir");
+const { resolveTempDir, loadTempDirSetting, saveTempDirSetting, isUsable } = require("./utils/temp-dir");
 const { makeImportQueueKey, isDuplicatePendingImport } = require("./utils/import-queue");
 const { shouldHideWindowOnClose, restoreOrCreateWindow } = require("./utils/app-lifecycle");
 const { createFatalRecovery } = require("./utils/fatal-recovery");
@@ -113,6 +113,31 @@ safeHandle("debug-log", (_event, payload = {}) => {
   const message = typeof payload.message === "string" ? payload.message : "";
   dbg(scope, message, payload.data && typeof payload.data === "object" ? payload.data : undefined);
   return true;
+});
+
+// Temp storage folder — expose pick/get/reset so the React MenuBar can offer these on Windows
+// (the native Electron menu is hidden when titleBarStyle is "hidden").
+safeHandle("get-temp-storage-folder", () => ({ dir: loadTempDirSetting() || null }));
+
+safeHandle("pick-temp-storage-folder", async () => {
+  const res = await dialog.showOpenDialog(_activeWindow(), {
+    title: "Choose Temp Storage Folder",
+    properties: ["openDirectory", "createDirectory"],
+  }).catch(() => null);
+  if (!res || res.canceled || !res.filePaths?.[0]) return { canceled: true };
+  const dir = res.filePaths[0];
+  if (!isUsable(dir)) return { error: "That folder is not writable. Please choose another location." };
+  saveTempDirSetting(dir);
+  _applyTempStorageEnv();
+  buildMenu();
+  return { dir };
+});
+
+safeHandle("reset-temp-storage-folder", () => {
+  saveTempDirSetting(null);
+  _applyTempStorageEnv();
+  buildMenu();
+  return { ok: true };
 });
 
 // Open an external link in the system browser, never in-app. Only http(s)/mailto are
@@ -447,7 +472,7 @@ function createWindow() {
     minWidth: 900,
     minHeight: 600,
     titleBarStyle: isMac ? "hiddenInset" : "hidden",
-    ...(isMac ? { trafficLightPosition: { x: 16, y: 16 } } : {}),
+    ...(isMac ? { trafficLightPosition: { x: 16, y: 16 } } : { titleBarOverlay: { color: "#0f1114", symbolColor: "#c8cdd6", height: 40 } }),
     ...(isMac ? { vibrancy: "under-window" } : {}),
     backgroundColor: "#0f1114",
     webPreferences: {
@@ -476,14 +501,15 @@ function createWindow() {
   const { pathToFileURL } = require("url");
   const distRootUrl = pathToFileURL(path.join(__dirname, "..", "dist") + path.sep).href;
   mainWindow.webContents.on("will-navigate", (event, url) => {
-    if (isDev && url.startsWith("http://localhost:5173")) return; // allow Vite dev reload
+    if (isDev && url.startsWith("http://localhost:5200")) return; // allow Vite dev reload
     if (!isDev && url.startsWith(distRootUrl)) return;            // allow in-app navigation within the bundle
     event.preventDefault();
     openExternalSafe(url);
   });
 
   if (isDev) {
-    mainWindow.loadURL("http://localhost:5173");
+    mainWindow.loadURL("http://localhost:5200");
+    mainWindow.webContents.openDevTools();
   } else {
     mainWindow.loadFile(path.join(__dirname, "..", "dist", "index.html"));
   }

@@ -57,6 +57,7 @@ export default function ToastContainer() {
             aria-live={t.kind === "error" ? "assertive" : "polite"}
             style={{
               pointerEvents: "auto",
+              WebkitAppRegion: "no-drag",
               minWidth: 280, maxWidth: 420,
               padding: "10px 12px 10px 14px",
               background: th.modalBg + "f2",

@@ -84,7 +84,7 @@ export default function Modal({
           zIndex,
           backdropFilter: clickThrough ? "none" : "blur(4px)",
           WebkitBackdropFilter: clickThrough ? "none" : "blur(4px)",
-          WebkitAppRegion: clickThrough ? "no-drag" : "drag",
+          WebkitAppRegion: "no-drag",
           pointerEvents: clickThrough ? "none" : undefined,
           animation: "tle-overlay-in var(--m-fast) var(--ease-out-soft)",
           outline: "none",
@@ -108,7 +108,7 @@ export default function Modal({
         zIndex,
         backdropFilter: "blur(4px)",
         WebkitBackdropFilter: "blur(4px)",
-        WebkitAppRegion: "drag",
+        WebkitAppRegion: "no-drag",
         animation: "tle-overlay-in var(--m-fast) var(--ease-out-soft)",
       }}
     >

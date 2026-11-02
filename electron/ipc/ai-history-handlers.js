@@ -4,7 +4,7 @@
  * Registers the IPC channels that discover & extract AI conversation history into timeline tabs:
  *   decode-ai-history            — per-tool decode (Claude Code, Codex, ChatGPT, …) from a file/folder
  *   pick-ai-history-scan-folder  — folder picker for a KAPE / triage / mounted collection
- *   discover-ai-history-profile  — discover AI roots on this Mac or a collection folder
+ *   discover-ai-history-profile  — discover AI roots on this machine or a collection folder
  *   extract-ai-history-profile   — discover + extract + merge into one AI Query History tab
  *   cancel-ai-history-extract    — abort an in-flight extraction
  *

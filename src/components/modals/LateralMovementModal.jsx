@@ -60,6 +60,18 @@ export default function LateralMovementModal() {
   // ── Modal styles (mirrors App.jsx `ms` object) ──────────────────
   const ms = useModalChrome();
 
+  // Pill drag position for minimized state
+  const [pillPos, setPillPos] = useState({ x: null, y: null });
+  const onPillDragStart = useCallback((e) => {
+    if (e.button !== 0) return;
+    const ox = e.clientX - (pillPos.x ?? window.innerWidth - 220);
+    const oy = e.clientY - (pillPos.y ?? (window.innerHeight - 80));
+    const onMove = (ev) => setPillPos({ x: ev.clientX - ox, y: ev.clientY - oy });
+    const onUp = () => { document.removeEventListener("mousemove", onMove); document.removeEventListener("mouseup", onUp); };
+    document.addEventListener("mousemove", onMove);
+    document.addEventListener("mouseup", onUp);
+  }, [pillPos]);
+
   // Guard-safe derivations. Every hook below must be declared BEFORE the early return
   // so the hook order is stable — the guard used to sit above a useEffect and a useMemo,
   // which is a latent "rendered fewer hooks than expected" crash (masked today only
@@ -230,7 +242,7 @@ export default function LateralMovementModal() {
       up("dateRangeFilters", { [lmCols.ts]: { from: _padTs(f.timeRange.from, -300000), to: _padTs(f.timeRange.to || f.timeRange.from, 300000) } });
     }
     up("searchTerm", ""); up("columnFilters", {});
-    setModal(null);
+    setModal((p) => ({ ...p, minimized: true }));
   };
   /** Switch to Network Graph tab, selecting the edge between f.source and f.target. */
   const _viewInGraph = (f, e) => {
@@ -380,7 +392,7 @@ export default function LateralMovementModal() {
     }));
     const first = [...grouped.values()][0];
     if (first?.tabId) setActiveTab(first.tabId);
-    setModal(null);
+    setModal((p) => ({ ...p, minimized: true }));
   };
   const _bookmarkEvidence = async (item, e) => {
     if (e) e.stopPropagation();
@@ -1063,6 +1075,53 @@ export default function LateralMovementModal() {
   _handlersRef.current.refreshLmPreview = refreshLmPreview;
   _handlersRef.current.handleAnalyze = handleAnalyze;
 
+  // Minimized pill — shown when user navigates to a timeline tab from within the modal
+  if (modal?.minimized) {
+    return (
+      <div style={{
+        position: "fixed",
+        zIndex: 220,
+        WebkitAppRegion: "no-drag",
+        ...(pillPos.x != null ? { left: pillPos.x, top: pillPos.y } : { right: 20, bottom: 80 }),
+      }}>
+        <div
+          onMouseDown={onPillDragStart}
+          onClick={(e) => e.stopPropagation()}
+          style={{
+            WebkitAppRegion: "no-drag",
+            background: th.modalBg,
+            border: `1px solid ${th.modalBorder || th.border}`,
+            borderRadius: 10,
+            boxShadow: "0 8px 32px rgba(0,0,0,0.45)",
+            display: "flex", alignItems: "center", gap: 8,
+            padding: "9px 14px",
+            cursor: "move",
+            userSelect: "none",
+            whiteSpace: "nowrap",
+          }}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={th.danger} strokeWidth="2" strokeLinecap="round" style={{ flexShrink: 0 }}>
+            <circle cx="5" cy="12" r="2.5"/><circle cx="19" cy="5" r="2.5"/><circle cx="19" cy="19" r="2.5"/>
+            <line x1="7.5" y1="11" x2="16.5" y2="6"/><line x1="7.5" y1="13" x2="16.5" y2="18"/>
+          </svg>
+          <span style={{ color: th.text, fontSize: 12, fontWeight: 600, fontFamily: "-apple-system, sans-serif" }}>Lateral Movement</span>
+          <span style={{ color: th.textMuted, fontSize: 11, fontFamily: "-apple-system, sans-serif" }}>· tracker active</span>
+          <button
+            onClick={() => setModal((p) => ({ ...p, minimized: false }))}
+            aria-label="Restore Lateral Movement Tracker"
+            title="Restore"
+            style={{ background: "none", border: "none", color: th.textDim, cursor: "pointer", fontSize: 13, padding: "2px 4px", marginLeft: 4, lineHeight: 1 }}
+          >⊞</button>
+          <button
+            onClick={() => setModal(null)}
+            aria-label="Close"
+            style={{ background: "none", border: "none", color: th.textDim, cursor: "pointer", fontSize: 15, padding: "2px 4px", lineHeight: 1 }}
+          >&times;</button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <DraggableResizableModal
       defaultWidth={Math.round(window.innerWidth * 0.92)}
@@ -1117,9 +1176,15 @@ export default function LateralMovementModal() {
               <p style={{ margin: "2px 0 0", color: th.textMuted, fontSize: LM_TYPOGRAPHY.body, fontFamily: "-apple-system, sans-serif" }}>Evidence-backed machine and user movement paths</p>
             </div>
           </div>
-          <button onClick={() => setModal(null)} style={{ width: 24, height: 24, borderRadius: 12, background: th.textMuted + "15", border: "none", color: th.textMuted, cursor: "pointer", fontSize: LM_TYPOGRAPHY.heading, fontFamily: "-apple-system, sans-serif", display: "flex", alignItems: "center", justifyContent: "center", transition: "all var(--m-base)" }}
-            onMouseEnter={(ev) => { ev.currentTarget.style.background = th.danger + "33"; ev.currentTarget.style.color = th.danger; }}
-            onMouseLeave={(ev) => { ev.currentTarget.style.background = th.textMuted + "15"; ev.currentTarget.style.color = th.textMuted; }}>{"\u2715"}</button>
+          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            <button onClick={() => setModal((p) => ({ ...p, minimized: true }))} aria-label="Minimize" title="Minimize"
+              style={{ width: 24, height: 24, borderRadius: 12, background: th.textMuted + "15", border: "none", color: th.textMuted, cursor: "pointer", fontSize: 16, fontFamily: "-apple-system, sans-serif", display: "flex", alignItems: "center", justifyContent: "center", transition: "all var(--m-base)", lineHeight: 1 }}
+              onMouseEnter={(ev) => { ev.currentTarget.style.background = th.accent + "33"; ev.currentTarget.style.color = th.accent; }}
+              onMouseLeave={(ev) => { ev.currentTarget.style.background = th.textMuted + "15"; ev.currentTarget.style.color = th.textMuted; }}>&#8722;</button>
+            <button onClick={() => setModal(null)} style={{ width: 24, height: 24, borderRadius: 12, background: th.textMuted + "15", border: "none", color: th.textMuted, cursor: "pointer", fontSize: LM_TYPOGRAPHY.heading, fontFamily: "-apple-system, sans-serif", display: "flex", alignItems: "center", justifyContent: "center", transition: "all var(--m-base)" }}
+              onMouseEnter={(ev) => { ev.currentTarget.style.background = th.danger + "33"; ev.currentTarget.style.color = th.danger; }}
+              onMouseLeave={(ev) => { ev.currentTarget.style.background = th.textMuted + "15"; ev.currentTarget.style.color = th.textMuted; }}>{"\u2715"}</button>
+          </div>
         </div>
 
         {/* Body */}
@@ -2360,9 +2425,9 @@ export default function LateralMovementModal() {
                                     up("dateRangeFilters", { [lmCols.ts]: { from: _padTs(rawFrom, -300000), to: _padTs(rawTo, 300000) } });
                                   }
                                   up("searchTerm", ""); up("columnFilters", {});
-                                  setModal(null);
+                                  setModal((p) => ({ ...p, minimized: true }));
                                 }} style={{ ...(_btnS), background: `${th.accent}15`, color: th.accent, border: `1px solid ${th.accent}33`, fontWeight: 600 }}
-                                  title="Close this modal and filter the main timeline to all events from this incident">
+                                  title="Minimize this modal and filter the main timeline to all events from this incident">
                                   <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke={th.accent} strokeWidth="2.5" strokeLinecap="round" style={{ marginRight: 3, verticalAlign: "middle", display: "inline" }}>
                                     <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/>
                                   </svg>
@@ -3017,7 +3082,7 @@ export default function LateralMovementModal() {
                               {!selectedGraphNode.unresolved && modal.columns?.user && (
                                 <button onClick={() => {
                                   up("columnFilters", { ...(ct.columnFilters || {}), [modal.columns.user]: selectedGraphNode.identity });
-                                  setModal(null);
+                                  setModal((p) => ({ ...p, minimized: true }));
                                 }} style={{ marginLeft: "auto", padding: "4px 12px", fontSize: LM_TYPOGRAPHY.control, background: `${th.accent}15`, color: th.accent, border: `1px solid ${th.accent}33`, borderRadius: 6, cursor: "pointer", fontFamily: "-apple-system, sans-serif", fontWeight: 600 }}>
                                   Filter user in timeline
                                 </button>
@@ -3147,7 +3212,7 @@ export default function LateralMovementModal() {
                                 else if (tgtCol) cf[tgtCol] = selectedNode;
                                 up("columnFilters", cf);
                               }
-                              setModal(null);
+                              setModal((p) => ({ ...p, minimized: true }));
                             }} style={{ marginLeft: "auto", padding: "4px 12px", fontSize: LM_TYPOGRAPHY.control, background: `linear-gradient(135deg, ${th.accent}33, ${th.accent}18)`, color: th.accent, border: `1px solid ${th.accent}33`, borderRadius: 6, cursor: "pointer", fontFamily: "-apple-system, sans-serif", fontWeight: 600, transition: "all var(--m-base)" }}
                               onMouseEnter={(ev) => { ev.currentTarget.style.background = th.accent + "44"; ev.currentTarget.style.boxShadow = `0 2px 8px ${th.accent}22`; }}
                               onMouseLeave={(ev) => { ev.currentTarget.style.background = `linear-gradient(135deg, ${th.accent}33, ${th.accent}18)`; ev.currentTarget.style.boxShadow = "none"; }}>
@@ -4479,9 +4544,9 @@ export default function LateralMovementModal() {
                                     up("dateRangeFilters", { [lmCols.ts]: { from: _padTs(a.firstSeen, -300000), to: _padTs(a.lastSeen || a.firstSeen, 300000) } });
                                   }
                                   up("searchTerm", ""); up("columnFilters", {});
-                                  setModal(null);
+                                  setModal((p) => ({ ...p, minimized: true }));
                                 }} style={{ padding: "2px 6px", background: `${th.accent}15`, color: th.accent, border: `1px solid ${th.accent}33`, borderRadius: 3, fontSize: LM_TYPOGRAPHY.badge, cursor: "pointer", fontFamily: "-apple-system, sans-serif", fontWeight: 600, whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: 3 }}
-                                  title="Close modal and filter main timeline to logon events for this user">
+                                  title="Minimize modal and filter main timeline to logon events for this user">
                                   <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke={th.accent} strokeWidth="2.5" strokeLinecap="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
                                   Timeline
                                 </button>

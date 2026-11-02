@@ -13,6 +13,10 @@ function onIpcNoArgs(channel, cb) {
 }
 
 contextBridge.exposeInMainWorld("tle", {
+  // Temp storage folder (pick/get/reset — exposed so the React MenuBar can reach it on Windows)
+  getTempStorageFolder: () => ipcRenderer.invoke("get-temp-storage-folder"),
+  pickTempStorageFolder: () => ipcRenderer.invoke("pick-temp-storage-folder"),
+  resetTempStorageFolder: () => ipcRenderer.invoke("reset-temp-storage-folder"),
   // File operations
   openFileDialog: () => ipcRenderer.invoke("open-file-dialog"),
   openAiSource: (filePath, lineNumber) => ipcRenderer.invoke("open-ai-source", { filePath, lineNumber }),

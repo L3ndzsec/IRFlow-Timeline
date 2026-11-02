@@ -417,6 +417,8 @@ export default function MenuBar({
         { label: "Linux artifact analyzers", detail: "auth, shell history, persistence, auditd, SSH", icon: ic(<><rect x="3" y="4" width="18" height="13" rx="2"/><polyline points="7 9 10 11.5 7 14"/><line x1="12" y1="14" x2="16" y2="14"/></>, th.textMuted), disabled: true, comingSoon: true },
         { label: "Cloud log analyzers", detail: "AWS, Azure, M365, GCP, Okta", icon: ic(<><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></>, th.textMuted), disabled: true, comingSoon: true },
       ] },
+      { section: "Settings" },
+      { label: "VirusTotal API Key…", icon: ic(<><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" fill={th.accent+"18"}/><circle cx="12" cy="12" r="3" fill={th.accent} opacity="0.7"/></>, th.accent), action: () => setModal(openIocLoadModal({ vtConfigExpanded: true })) },
       { section: "Export" },
       { label: "Export AI History Package", icon: ic(<><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M12 11v6M9 14h6"/></>, th.accent), action: () => exportAiHistoryPackage(false), disabled: !ct?.dataReady || !isAiHistorySourceFormat(ct?.sourceFormat) },
       { label: "Export Source Manifest (sources only)", icon: ic(<><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/></>, th.accent), action: () => exportAiHistoryPackage(true), disabled: !ct?.dataReady || !isAiHistorySourceFormat(ct?.sourceFormat) },
@@ -585,7 +587,7 @@ export default function MenuBar({
 
   return (
     <>
-    <div className="tle-menubar-shell" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 12px 6px 84px", background: th.toolbarBg, backdropFilter: "blur(20px) saturate(180%)", WebkitBackdropFilter: "blur(20px) saturate(180%)", borderBottom: `1px solid ${th.glassBorder}`, gap: 10, flexShrink: 0, position: "relative", zIndex: 100, WebkitAppRegion: "drag" }}>
+    <div className="tle-menubar-shell" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "6px 152px 6px 12px", background: th.toolbarBg, backdropFilter: "blur(20px) saturate(180%)", WebkitBackdropFilter: "blur(20px) saturate(180%)", borderBottom: `1px solid ${th.glassBorder}`, gap: 10, flexShrink: 0, position: "relative", zIndex: 100, WebkitAppRegion: "drag" }}>
       <div className="tle-menubar-left" style={{ display: "flex", alignItems: "center", gap: 8, WebkitAppRegion: "no-drag" }}>
         {/* Menu capsule */}
         <div role="menubar" aria-label="Main menu" style={{ display: "flex", alignItems: "center", gap: 1, background: th.glassBg, border: `1px solid ${th.glassBorder}`, borderRadius: 10, padding: 2 }}>
@@ -612,6 +614,16 @@ export default function MenuBar({
                 { label: "Close Tab", shortcut: "Ctrl+W", action: () => { if (ct) closeTab(ct.id); }, disabled: !ct },
                 { label: "Close All Tabs", action: () => { setTabs((prev) => { prev.forEach((t) => tle.closeTab(t.id)); return []; }); setActiveTab(null); }, disabled: tabs.length === 0 },
                 { type: "separator" },
+                { label: "Set Temp Storage Folder…", action: async () => {
+                  const r = await tle?.pickTempStorageFolder?.();
+                  if (r?.error) toast.error("Folder not writable", { detail: r.error });
+                  else if (!r?.canceled && r?.dir) toast.success("Temp folder set", { detail: `New imports will use: ${r.dir}` });
+                }},
+                { label: "Reset to Default Temp Folder", action: async () => {
+                  await tle?.resetTempStorageFolder?.();
+                  toast.info("Temp folder reset", { detail: "Using system default temp directory." });
+                }},
+                { type: "separator" },
                 { label: "Exit", action: () => window.close() },
               ].map((item, i) => {
                 if (item.type === "separator") return <div key={`sep-${i}`} style={{ height: 1, background: th.border, margin: "4px 12px" }} />;
@@ -632,7 +644,7 @@ export default function MenuBar({
                               style={{ padding: "6px 16px", cursor: "pointer", fontSize: 12, fontFamily: "-apple-system, sans-serif", color: th.text, overflow: "hidden", textOverflow: "ellipsis" }}
                               onMouseEnter={(e) => e.currentTarget.style.background = th.selection}
                               onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}>
-                              {fp.split("/").pop()}
+                              {fp.split(/[/\\]/).pop()}
                               <div style={{ fontSize: 10, color: th.textMuted, marginTop: 1, overflow: "hidden", textOverflow: "ellipsis" }}>{fp}</div>
                             </div>
                           ))}

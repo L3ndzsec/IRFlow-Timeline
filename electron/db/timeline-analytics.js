@@ -129,13 +129,19 @@ class TimelineAnalyticsMethods {
 
     const whereClause = `WHERE ${whereConditions.join(" AND ")}`;
 
+    const COVERAGE_LIMIT = 500;
     try {
-      const sql = `SELECT ${safeSourceCol} as source, COUNT(*) as cnt, MIN(${safeTsCol}) as earliest, MAX(${safeTsCol}) as latest FROM data ${whereClause} GROUP BY ${safeSourceCol} ORDER BY cnt DESC`;
+      const sql = `SELECT ${safeSourceCol} as source, COUNT(*) as cnt, MIN(${safeTsCol}) as earliest, MAX(${safeTsCol}) as latest FROM data ${whereClause} GROUP BY ${safeSourceCol} ORDER BY cnt DESC LIMIT ${COVERAGE_LIMIT}`;
       const sources = db.prepare(sql).all(...params);
 
       if (sources.length === 0) {
         return { sources: [], globalEarliest: null, globalLatest: null, totalEvents: 0, totalSources: 0 };
       }
+
+      const truncated = sources.length >= COVERAGE_LIMIT;
+      const totalSources = truncated
+        ? (db.prepare(`SELECT COUNT(*) as c FROM (SELECT 1 FROM data ${whereClause} GROUP BY ${safeSourceCol})`).get(...params)?.c ?? COVERAGE_LIMIT)
+        : sources.length;
 
       const totalEvents = sources.reduce((s, r) => s + r.cnt, 0);
       let globalEarliest = sources[0].earliest;
@@ -145,7 +151,7 @@ class TimelineAnalyticsMethods {
         if (s.latest > globalLatest) globalLatest = s.latest;
       }
 
-      return { sources, globalEarliest, globalLatest, totalEvents, totalSources: sources.length };
+      return { sources, globalEarliest, globalLatest, totalEvents, totalSources, truncated };
     } catch (e) {
       return { sources: [], globalEarliest: null, globalLatest: null, totalEvents: 0, totalSources: 0, error: e.message };
     }

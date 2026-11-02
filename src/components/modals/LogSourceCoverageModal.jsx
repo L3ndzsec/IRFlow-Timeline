@@ -130,6 +130,11 @@ export default function LogSourceCoverageModal() {
                 </optgroup>
               </select>
             </div>
+            {knownSourceCols.length === 0 && (
+              <div style={{ fontSize: 11, color: th.textMuted, padding: "6px 10px", background: `${th.accent}18`, border: `1px solid ${th.accent}44`, borderRadius: 6, marginBottom: 10, fontFamily: "-apple-system, sans-serif" }}>
+                No standard source columns detected (Provider, Channel, EventLog, etc.). The selected column may have many unique values — results are capped at 500.
+              </div>
+            )}
             <div style={ms.fg}>
               <label style={ms.lb}>Timestamp Column</label>
               <select value={tsCol} onChange={(e) => setModal((p) => ({ ...p, tsCol: e.target.value }))} style={ms.sl}>
@@ -187,6 +192,13 @@ export default function LogSourceCoverageModal() {
                 ))}
               </div>
 
+              {/* Truncation notice */}
+              {data.truncated && (
+                <div style={{ fontSize: 11, color: th.textMuted, padding: "6px 10px", background: `${th.accent}18`, border: `1px solid ${th.accent}44`, borderRadius: 6, marginBottom: 14, fontFamily: "-apple-system, sans-serif" }}>
+                  Showing top 500 sources by event count out of {data.totalSources.toLocaleString()} unique values. To see all sources, apply a column filter to narrow the data first.
+                </div>
+              )}
+
               {/* Gantt chart */}
               <div style={{ marginBottom: 14 }}>
                 <div style={ms.lb}>Coverage Timeline</div>
@@ -238,7 +250,7 @@ export default function LogSourceCoverageModal() {
 
               {/* Detail list */}
               <div style={{ marginBottom: 14 }}>
-                <div style={ms.lb}>Source Details ({data.totalSources})</div>
+                <div style={ms.lb}>Source Details ({data.truncated ? `top 500 of ${data.totalSources.toLocaleString()}` : data.totalSources})</div>
                 <div style={{ maxHeight: 200, overflow: "auto", border: `1px solid ${th.border}`, borderRadius: 6 }}>
                   {sorted.map((s, i) => {
                     const dur = parseTs(s.latest) - parseTs(s.earliest);

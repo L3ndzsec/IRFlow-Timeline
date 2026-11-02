@@ -58,7 +58,7 @@ export default function useSigmaResultActions({
       };
       updateActiveTab(updates);
       fetchData({ ...ct, ...updates });
-      setModal(null);
+      setModal((p) => ({ ...p, sourceAction: null, importProgress: null, minimized: true }));
     } catch (e) {
       setModal((p) => ({ ...p, sourceAction: null, error: e?.message || "Failed to show exact matches." }));
     }
@@ -112,7 +112,7 @@ export default function useSigmaResultActions({
         return null;
       }
       onSuccess?.(r);
-      setModal(null);
+      setModal((p) => ({ ...p, sourceAction: null, importProgress: null, minimized: true }));
       return r;
     } catch (e) {
       clearIpcSubscription("sigma-progress");
@@ -374,7 +374,7 @@ export default function useSigmaResultActions({
       setModal((p) => ({ ...p, openingTab: false, importProgress: null, error: e?.message || "Failed to open as tab" }));
       return;
     }
-    setModal(null);
+    setModal((p) => ({ ...p, openingTab: false, importProgress: null, minimized: true }));
   };
 
   return {

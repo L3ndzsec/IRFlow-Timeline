@@ -53,6 +53,7 @@ import {
   openAiWorkspaceCorrelateModal,
   openAiHistoryProfileScanModal,
   openDiffExplorerModal,
+  openTriageCollectionModal,
   updateModal,
 } from "./modals/modalRegistry.js";
 import { HOME_CAPABILITY_LAUNCHERS, buildLateralMovementCols } from "./utils/analyzer-launch.js";
@@ -3442,6 +3443,8 @@ export default function App() {
         icon: <><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><rect x="10" y="11" width="4" height="4" rx="1"/><path d="M10.5 11V9.5a1.5 1.5 0 0 1 3 0V11"/></> },
       { title: "USN Journal", desc: "Renames, deletions, exfil staging & self-deletion from the $J journal", color: th.accent, capability: "usn", chip: "$J / USN", outcome: "Open → journal triage", onClick: () => launchCapabilityFromHome("usn"),
         icon: <><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 8h10M7 12h10M7 16h6"/></> },
+      { title: "Triage Collection", desc: "Import a batch triage package — multiple artifact types imported into one session", color: th.accent, chip: "Batch import", outcome: "Open collection →", ready: true, onClick: () => setModal(openTriageCollectionModal()),
+        icon: <><path d="M3 6h18M3 12h18M3 18h18"/><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 9l4 4 4-4"/></> },
       { title: "Open & Explore", desc: "Just browse a large CSV / TSV / XLSX in a fast grid — filter, search & sort. No analyzer needed.", color: th.accent, chip: "Any file", outcome: "Open any file →", onClick: () => runOpenFileDialog(),
         icon: <><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></> },
     ];
@@ -3616,6 +3619,7 @@ export default function App() {
           {modal?.type === "aiWorkspaceCorrelate" && <AiWorkspaceCorrelateModal th={th} />}
           {modal?.type === "aiHistoryScope" && <AiHistoryScopeModal />}
           {modal?.type === "aiSecrets" && <AiSecretsModal th={th} />}
+          {modal?.type === "triageCollection" && <TriageCollectionModal />}
         </Suspense>
 	      </div>
     );
@@ -4593,7 +4597,7 @@ export default function App() {
         const totalMergeRows = checkedTabs.reduce((s, t) => s + t.rowCount, 0);
         const canMerge = checkedTabs.length >= 2 && checkedTabs.every((t) => t.selectedTsCol);
         return (
-          <div style={{ position: "fixed", inset: 0, background: th.overlay, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100, backdropFilter: "blur(4px)", WebkitAppRegion: "drag" }}>
+          <div style={{ position: "fixed", inset: 0, background: th.overlay, display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100, backdropFilter: "blur(4px)", WebkitAppRegion: "no-drag" }}>
             <div onClick={(e) => e.stopPropagation()} style={{ WebkitAppRegion: "no-drag", background: th.modalBg + "f2", border: `1px solid ${th.glassBorder}`, borderRadius: 12, padding: 0, width: 560, maxWidth: "94vw", maxHeight: "88vh", display: "flex", flexDirection: "column", backdropFilter: "blur(40px) saturate(1.6)", WebkitBackdropFilter: "blur(40px) saturate(1.6)", boxShadow: "0 24px 80px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.04) inset", animation: "tle-modal-in var(--m-modal) var(--ease-out)" }}>
               <div style={{ padding: "16px 20px 12px", borderBottom: `1px solid ${th.border}`, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                 <div>

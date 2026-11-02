@@ -784,6 +784,54 @@ export default function SigmaRuleModal() {
 
   /* ── Layout ───────────────────────────────────────────────────────── */
 
+  const minimized = modal.minimized || false;
+
+  if (minimized) {
+    return (
+      <div style={{
+        position: "fixed",
+        zIndex: 220,
+        WebkitAppRegion: "no-drag",
+        ...(pos.x != null ? { left: pos.x, top: pos.y } : { right: 20, bottom: 80 }),
+      }}>
+        <div
+          data-modal-box
+          onMouseDown={onDragStart}
+          onClick={(e) => e.stopPropagation()}
+          style={{
+            WebkitAppRegion: "no-drag",
+            background: th.modalBg,
+            border: `1px solid ${th.modalBorder}`,
+            borderRadius: 10,
+            boxShadow: "0 8px 32px rgba(0,0,0,0.45)",
+            display: "flex", alignItems: "center", gap: 8,
+            padding: "9px 14px",
+            cursor: "move",
+            userSelect: "none",
+            whiteSpace: "nowrap",
+          }}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={th.accent} strokeWidth="2" strokeLinecap="round" style={{ flexShrink: 0 }}>
+            <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/><path d="M11 8v6M8 11h6"/>
+          </svg>
+          <span style={{ color: th.text, fontSize: 12, fontWeight: 600, fontFamily: "-apple-system, sans-serif" }}>Sigma Scan</span>
+          <span style={{ color: th.textMuted, fontSize: 11, fontFamily: "-apple-system, sans-serif" }}>· results ready</span>
+          <button
+            onClick={() => setModal((p) => ({ ...p, minimized: false }))}
+            aria-label="Restore Sigma Scan"
+            title="Restore"
+            style={{ background: "none", border: "none", color: th.textDim, cursor: "pointer", fontSize: 13, padding: "2px 4px", marginLeft: 4, lineHeight: 1 }}
+          >⊞</button>
+          <button
+            onClick={handleCloseModal}
+            aria-label="Close"
+            style={{ background: "none", border: "none", color: th.textDim, cursor: "pointer", fontSize: 15, padding: "2px 4px", lineHeight: 1 }}
+          >&times;</button>
+        </div>
+      </div>
+    );
+  }
+
   // Hard-lock against accidental dismissal: backdrop clicks are ignored
   // (closeOnOverlay=false) and Escape is ignored (closeOnEscape=false) so an
   // in-progress scan / results session isn't lost. Close only via the ✕ / footer.
@@ -795,7 +843,10 @@ export default function SigmaRuleModal() {
         {/* Header — draggable (double-click to reset position) */}
         <div onMouseDown={onDragStart} onDoubleClick={() => { setPos({ x: null, y: null }); setSize({ w: 660, h: null }); }} style={{ padding: "16px 20px 12px", borderBottom: `1px solid ${th.border}`, display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "move", userSelect: "none" }}>
           <h3 style={{ margin: 0, fontSize: 15, fontWeight: 600, color: th.text, fontFamily: "-apple-system, sans-serif" }}>Sigma Scan</h3>
-          <button onClick={handleCloseModal} aria-label="Close" style={{ background: "none", border: "none", color: th.textDim, cursor: "pointer", fontSize: 16, padding: 4 }}>&times;</button>
+          <div style={{ display: "flex", alignItems: "center", gap: 2 }}>
+            <button onClick={() => setModal((p) => ({ ...p, minimized: true }))} aria-label="Minimize" title="Minimize" style={{ background: "none", border: "none", color: th.textDim, cursor: "pointer", fontSize: 16, padding: 4, lineHeight: 1 }}>&#8722;</button>
+            <button onClick={handleCloseModal} aria-label="Close" style={{ background: "none", border: "none", color: th.textDim, cursor: "pointer", fontSize: 16, padding: 4 }}>&times;</button>
+          </div>
         </div>
 
         {/* Body */}
