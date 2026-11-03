@@ -54,11 +54,10 @@ const useUIStore = create((set) => ({
   // ── Modal state ──────────────────────────────────────────────────
   modal: null,
   // Minimized "pill" modals that survive when another modal is opened.
-  // Only lateralMovement and sigma participate; other types are replaced normally.
   minimizedModals: [],
 
   setModal: (v) => set((s) => {
-    const PILL_TYPES = new Set(["lateralMovement", "sigma"]);
+    const PILL_TYPES = new Set(["lateralMovement", "sigma", "processTree", "persistence", "rdpBitmapCache", "ads", "usnAnalysis"]);
     const newModal = typeof v === "function" ? v(s.modal) : v;
 
     // Opening one pill-type while another pill-type is already present (full or minimized):
@@ -95,7 +94,7 @@ const useUIStore = create((set) => ({
   restoreMinimizedModal: (type) => set((s) => {
     const pinned = s.minimizedModals.find((m) => m.type === type);
     if (!pinned) return {};
-    const PILL_TYPES = new Set(["lateralMovement", "sigma"]);
+    const PILL_TYPES = new Set(["lateralMovement", "sigma", "processTree", "persistence", "rdpBitmapCache", "ads", "usnAnalysis"]);
     const remaining = s.minimizedModals.filter((m) => m.type !== type);
     if (s.modal != null && PILL_TYPES.has(s.modal.type)) {
       remaining.push({ ...s.modal, minimized: true });
@@ -106,6 +105,18 @@ const useUIStore = create((set) => ({
   removeMinimizedModal: (type) => set((s) => ({
     minimizedModals: s.minimizedModals.filter((m) => m.type !== type),
   })),
+
+  // Minimize the active modal to a pill (moves it into minimizedModals, clears modal slot).
+  minimizeModal: () => set((s) => {
+    if (!s.modal) return {};
+    return {
+      modal: null,
+      minimizedModals: [
+        ...s.minimizedModals.filter((m) => m.type !== s.modal.type),
+        { ...s.modal, minimized: true },
+      ],
+    };
+  }),
 
   updateModal: (type, updater) => set((s) => ({ modal: buildModalUpdate(type, updater)(s.modal) })),
 

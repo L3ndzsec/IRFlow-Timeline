@@ -10,6 +10,7 @@ import useModalChrome from "../../hooks/useModalChrome.js";
 export default function AdsModal() {
   const modal = useUIStore((s) => s.modal);
   const setModal = useUIStore((s) => s.setModal);
+  const minimizeModal = useUIStore((s) => s.minimizeModal);
   const ct = useCurrentTab();
   const { th } = useTheme();
   const tle = typeof window !== "undefined" ? window.tle : null;
@@ -248,7 +249,10 @@ export default function AdsModal() {
               <p style={{ margin: "2px 0 0", color: th.textMuted, fontSize: 10, fontFamily: "-apple-system, sans-serif" }}>Alternate Data Streams, Zone.Identifier, and download forensics</p>
             </div>
           </div>
-          <button onClick={() => setModal(null)} style={{ background: "none", border: "none", color: th.textMuted, fontSize: 18, cursor: "pointer", padding: "4px 8px", lineHeight: 1 }}>{"\u2715"}</button>
+          <div style={{ display: "flex", alignItems: "center", gap: 2 }}>
+            <button onClick={minimizeModal} title="Minimize" aria-label="Minimize" style={{ background: "none", border: "none", color: th.textMuted, fontSize: 16, cursor: "pointer", padding: "4px 6px", lineHeight: 1 }}>{"\u2013"}</button>
+            <button onClick={() => setModal(null)} style={{ background: "none", border: "none", color: th.textMuted, fontSize: 18, cursor: "pointer", padding: "4px 8px", lineHeight: 1 }}>{"\u2715"}</button>
+          </div>
         </div>
 
         {/* Body */}

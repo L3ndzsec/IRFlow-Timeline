@@ -2,7 +2,7 @@
 // Licensed under the Apache License 2.0.
 import { lazy, Suspense, useState, useEffect, useRef, useCallback, useMemo, Fragment } from "react";
 import { createPortal } from "react-dom";
-import { LateralMovementPill, SigmaPill } from "./components/modals/FloatingPills.jsx";
+import { LateralMovementPill, SigmaPill, ProcessInspectorPill, PersistenceAnalyzerPill, RdpBitmapCachePill, AdsPill, UsnAnalysisPill } from "./components/modals/FloatingPills.jsx";
 // ── Extracted constants ──────────────────────────────────────────
 import { ROW_HEIGHT, HEADER_HEIGHT, FILTER_HEIGHT, OVERSCAN, VIRTUAL_WINDOW, VIRTUAL_AHEAD, QUERY_DEBOUNCE, DETAIL_PANEL_HEIGHT_DEFAULT, DETAIL_PANEL_MIN_HEIGHT, DETAIL_PANEL_MAX_HEIGHT, TAG_COL_WIDTH_DEFAULT, TAG_COL_WIDTH_MIN, BKMK_COL_WIDTH, CHECKBOX_COL_WIDTH, VT_COL_WIDTH, EVIDENCE_COL_WIDTH, VT_COMPATIBLE_RE, MAX_PHYSICAL_H, SKELETON_ARM_DELAY } from "./constants/grid.js";
 import { THEMES } from "./constants/themes.js";
@@ -3614,6 +3614,7 @@ export default function App() {
         )}
         {/* Modal overlay — must render even in empty state for EVTX scanning */}
         {minimizedModals.some((m) => m.type === "sigma") && <SigmaPill />}
+        {minimizedModals.some((m) => m.type === "rdpBitmapCache") && <RdpBitmapCachePill />}
         <Suspense fallback={<ModalChunkFallback th={th} />}>
           {modal?.type === "sigma" && <SigmaRuleModal />}
           {modal?.type === "rdpBitmapCache" && <RdpBitmapCacheModal />}
@@ -4695,6 +4696,7 @@ export default function App() {
 
         {/* Persistence Analyzer Modal */}
         {modal?.type === "persistence" && ct && <PersistenceModal />}
+        {minimizedModals.some((m) => m.type === "persistence") && ct && <PersistenceAnalyzerPill />}
 
         {/* Ransomware MFT Analysis Modal */}
         {modal?.type === "ransomware" && ct && <RansomwareModal />}
@@ -4707,6 +4709,7 @@ export default function App() {
         {modal?.type === "sigma" && <SigmaRuleModal />}
         {minimizedModals.some((m) => m.type === "sigma") && <SigmaPill />}
         {modal?.type === "rdpBitmapCache" && <RdpBitmapCacheModal />}
+        {minimizedModals.some((m) => m.type === "rdpBitmapCache") && <RdpBitmapCachePill />}
         {modal?.type === "aiHistoryProfileScan" && <AiHistoryProfileScanModal />}
         {modal?.type === "aiHistoryExtract" && <AiHistoryExtractModal />}
         {modal?.type === "aiWorkspaceCorrelate" && <AiWorkspaceCorrelateModal th={th} />}
@@ -4715,9 +4718,11 @@ export default function App() {
 
         {/* ADS Analyzer Modal */}
         {modal?.type === "ads" && ct && <AdsModal />}
+        {minimizedModals.some((m) => m.type === "ads") && ct && <AdsPill />}
 
         {/* USN Journal Analysis Modal */}
         {modal?.type === "usnAnalysis" && ct && <UsnAnalysisModal />}
+        {minimizedModals.some((m) => m.type === "usnAnalysis") && ct && <UsnAnalysisPill />}
       </Suspense>
 
       {/* Context Menu */}

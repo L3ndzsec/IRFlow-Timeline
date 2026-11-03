@@ -17,6 +17,7 @@ import {
 export default function UsnAnalysisModal() {
   const modal = useUIStore((s) => s.modal);
   const setModal = useUIStore((s) => s.setModal);
+  const minimizeModal = useUIStore((s) => s.minimizeModal);
   const ct = useCurrentTab();
   const { th } = useTheme();
   const tle = typeof window !== "undefined" ? window.tle : null;
@@ -885,7 +886,10 @@ export default function UsnAnalysisModal() {
               <p style={{ margin: "2px 0 0", color: th.textMuted, fontSize: 10, fontFamily: "-apple-system, sans-serif" }}>Analyze file system activity within a time window</p>
             </div>
           </div>
-          <button onClick={() => setModal(null)} style={{ background: `${th.border}22`, border: `1px solid ${th.border}33`, color: th.textMuted, cursor: "pointer", fontSize: 14, padding: "4px 8px", borderRadius: 6, lineHeight: 1 }}>{"\u2715"}</button>
+          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            <button onClick={minimizeModal} title="Minimize" aria-label="Minimize" style={{ background: `${th.border}22`, border: `1px solid ${th.border}33`, color: th.textMuted, cursor: "pointer", fontSize: 14, padding: "4px 8px", borderRadius: 6, lineHeight: 1 }}>{"\u2013"}</button>
+            <button onClick={() => setModal(null)} style={{ background: `${th.border}22`, border: `1px solid ${th.border}33`, color: th.textMuted, cursor: "pointer", fontSize: 14, padding: "4px 8px", borderRadius: 6, lineHeight: 1 }}>{"\u2715"}</button>
+          </div>
         </div>
 
         {/* Body */}

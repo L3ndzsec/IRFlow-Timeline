@@ -50,6 +50,7 @@ export default function ProcessTreeModal() {
   } = useProcessAnalyzerContext();
   const modal = useUIStore(s => s.modal);
   const setModal = useUIStore(s => s.setModal);
+  const minimizeModal = useUIStore(s => s.minimizeModal);
   const setProximityFilter = useUIStore(s => s.setProximityFilter);
   const ct = useCurrentTab();
   const { th } = useTheme();
@@ -1102,7 +1103,10 @@ return (
               })()}
             </div>
           </div>
-          <button onClick={() => setModal(null)} style={{ background: "none", border: "none", color: th.textDim, fontSize: 18, cursor: "pointer", padding: "0 4px", lineHeight: 1 }}>{"\u00D7"}</button>
+          <div style={{ display: "flex", alignItems: "center", gap: 2 }}>
+            <button onClick={minimizeModal} title="Minimize" aria-label="Minimize" style={{ background: "none", border: "none", color: th.textDim, fontSize: 16, cursor: "pointer", padding: "0 4px", lineHeight: 1 }}>{"\u2013"}</button>
+            <button onClick={() => setModal(null)} style={{ background: "none", border: "none", color: th.textDim, fontSize: 18, cursor: "pointer", padding: "0 4px", lineHeight: 1 }}>{"\u00D7"}</button>
+          </div>
         </div>
       </div>
 

@@ -52,6 +52,7 @@ const _toCSV = (rows) => {
 export default function PersistenceModal() {
   const modal = useUIStore((s) => s.modal);
   const setModal = useUIStore((s) => s.setModal);
+  const minimizeModal = useUIStore((s) => s.minimizeModal);
   const ct = useCurrentTab();
   const { th } = useTheme();
   const tle = typeof window !== "undefined" ? window.tle : null;
@@ -711,7 +712,10 @@ export default function PersistenceModal() {
               </div>
             </div>
           </div>
-          <button onClick={() => setModal(null)} style={{ background: "none", border: "none", color: th.textMuted, cursor: "pointer", padding: 4, borderRadius: 6, fontSize: 18, lineHeight: 1 }} onMouseEnter={(e) => e.currentTarget.style.color = th.text} onMouseLeave={(e) => e.currentTarget.style.color = th.textMuted}>&times;</button>
+          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            <button onClick={minimizeModal} title="Minimize" aria-label="Minimize" style={{ background: "none", border: "none", color: th.textMuted, cursor: "pointer", padding: 4, borderRadius: 6, fontSize: 16, lineHeight: 1 }} onMouseEnter={(e) => e.currentTarget.style.color = th.text} onMouseLeave={(e) => e.currentTarget.style.color = th.textMuted}>{"–"}</button>
+            <button onClick={() => setModal(null)} style={{ background: "none", border: "none", color: th.textMuted, cursor: "pointer", padding: 4, borderRadius: 6, fontSize: 18, lineHeight: 1 }} onMouseEnter={(e) => e.currentTarget.style.color = th.text} onMouseLeave={(e) => e.currentTarget.style.color = th.textMuted}>&times;</button>
+          </div>
         </div>
 
         {/* Body — scrollable */}

@@ -89,6 +89,7 @@ function pill(th, text, color) {
 export default function RdpBitmapCacheModal() {
   const modal = useUIStore((s) => s.modal);
   const setModal = useUIStore((s) => s.setModal);
+  const minimizeModal = useUIStore((s) => s.minimizeModal);
   const { th } = useTheme();
   const [selectedImagePath, setSelectedImagePath] = useState(null);
   const [previewPaths, setPreviewPaths] = useState({});
@@ -385,6 +386,7 @@ export default function RdpBitmapCacheModal() {
       open
       title="RDP Bitmap Cache"
       subtitle="Recover bitmap cache images from Windows profile artifacts"
+      headerExtra={<button onClick={minimizeModal} title="Minimize" aria-label="Minimize" style={{ background: "none", border: "none", color: th.textMuted, cursor: "pointer", fontSize: 16, padding: "2px 6px", lineHeight: 1 }}>{"–"}</button>}
       width={920}
       maxHeight="88vh"
       // Hard-lock the modal against accidental dismissal — an extraction can hold a
