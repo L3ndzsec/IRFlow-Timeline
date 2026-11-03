@@ -21,6 +21,7 @@ const { createUpdateController } = require("./updater");
 const { JobManager } = require("./jobs/job-manager");
 const { resolveTempDir, loadTempDirSetting, saveTempDirSetting, isUsable } = require("./utils/temp-dir");
 const { makeImportQueueKey, isDuplicatePendingImport } = require("./utils/import-queue");
+const mcpManifest = require("./utils/mcp-manifest");
 const { shouldHideWindowOnClose, restoreOrCreateWindow } = require("./utils/app-lifecycle");
 const { createFatalRecovery } = require("./utils/fatal-recovery");
 const { buildMenu: _buildMenu } = require("./menu");
@@ -417,6 +418,7 @@ async function runImportJob(filePath, tabId, sheetName, fileSize) {
       tsColumns: result.tsColumns,
       numericColumns: result.numericColumns || [],
     });
+    _refreshMcpManifest();
     return result;
   } catch (err) {
     _cleanupDbFiles(dbPath);
@@ -628,6 +630,7 @@ registerAll(safeHandle, safeSend, {
   _newTempDbPath,
   extractResidentData,
   updateController,
+  refreshMcpManifest: _refreshMcpManifest,
   mainWindow: { isDestroyed() { return !mainWindow || mainWindow.isDestroyed(); } },
 });
 
@@ -647,7 +650,12 @@ function buildMenu() {
 
 // ── HTML Report Builder ──────────────────────────────────────────
 
+function _refreshMcpManifest() {
+  try { mcpManifest.refresh(db.databases, _tabMeta); } catch (_) {}
+}
+
 app.whenReady().then(() => {
+  mcpManifest.init(app.getPath("userData"));
   app.setAboutPanelOptions({
     applicationName: "IRFlow Timeline",
     applicationVersion: packageMeta.version,

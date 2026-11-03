@@ -39,6 +39,7 @@ import {
 
 export default function SigmaRuleModal() {
   const modal = useUIStore((s) => s.modal);
+  const minimizedModals = useUIStore((s) => s.minimizedModals);
   const setModal = useUIStore((s) => s.setModal);
   const refreshCallback = useUIStore((s) => s.refreshCallback);
   const ct = useCurrentTab();
@@ -785,6 +786,8 @@ export default function SigmaRuleModal() {
   /* ── Layout ───────────────────────────────────────────────────────── */
 
   const minimized = modal.minimized || false;
+  // Sit on top of whatever is already parked in minimizedModals
+  const sigmaPillBottom = 80 + minimizedModals.length * 50;
 
   if (minimized) {
     return (
@@ -792,7 +795,7 @@ export default function SigmaRuleModal() {
         position: "fixed",
         zIndex: 220,
         WebkitAppRegion: "no-drag",
-        ...(pos.x != null ? { left: pos.x, top: pos.y } : { right: 20, bottom: 80 }),
+        ...(pos.x != null ? { left: pos.x, top: pos.y } : { right: 20, bottom: sigmaPillBottom }),
       }}>
         <div
           data-modal-box

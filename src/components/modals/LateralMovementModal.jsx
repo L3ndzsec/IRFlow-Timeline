@@ -41,6 +41,7 @@ const _activeFilters = (tab) => {
 
 export default function LateralMovementModal() {
   const modal = useUIStore((s) => s.modal);
+  const minimizedModals = useUIStore((s) => s.minimizedModals);
   const setModal = useUIStore((s) => s.setModal);
   const ct = useCurrentTab();
   const { th } = useTheme();
@@ -60,17 +61,19 @@ export default function LateralMovementModal() {
   // ── Modal styles (mirrors App.jsx `ms` object) ──────────────────
   const ms = useModalChrome();
 
-  // Pill drag position for minimized state
+  // Pill drag position for minimized state.
+  // Bottom offset is computed at render time so it updates reactively if minimizedModals changes.
+  const lmPillBottom = 80 + minimizedModals.length * 50;
   const [pillPos, setPillPos] = useState({ x: null, y: null });
   const onPillDragStart = useCallback((e) => {
     if (e.button !== 0) return;
     const ox = e.clientX - (pillPos.x ?? window.innerWidth - 220);
-    const oy = e.clientY - (pillPos.y ?? (window.innerHeight - 80));
+    const oy = e.clientY - (pillPos.y ?? (window.innerHeight - lmPillBottom));
     const onMove = (ev) => setPillPos({ x: ev.clientX - ox, y: ev.clientY - oy });
     const onUp = () => { document.removeEventListener("mousemove", onMove); document.removeEventListener("mouseup", onUp); };
     document.addEventListener("mousemove", onMove);
     document.addEventListener("mouseup", onUp);
-  }, [pillPos]);
+  }, [pillPos, lmPillBottom]);
 
   // Guard-safe derivations. Every hook below must be declared BEFORE the early return
   // so the hook order is stable — the guard used to sit above a useEffect and a useMemo,
@@ -1082,7 +1085,7 @@ export default function LateralMovementModal() {
         position: "fixed",
         zIndex: 220,
         WebkitAppRegion: "no-drag",
-        ...(pillPos.x != null ? { left: pillPos.x, top: pillPos.y } : { right: 20, bottom: 80 }),
+        ...(pillPos.x != null ? { left: pillPos.x, top: pillPos.y } : { right: 20, bottom: lmPillBottom }),
       }}>
         <div
           onMouseDown={onPillDragStart}

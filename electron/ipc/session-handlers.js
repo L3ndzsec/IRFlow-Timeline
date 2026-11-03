@@ -79,7 +79,7 @@ async function openAuthorizedAiSource({ filePath, lineNumber } = {}, openPath = 
 }
 
 function registerSessionHandlers(safeHandle, safeSend, ctx) {
-  const { db, _activeWindow, enqueueImport, _loadRecentFiles, _saveRecentFiles, _rebuildMenu, _tabMeta, _pendingIndexTabs, nextTabId, updateController, jobManager, scheduleIndexBuild } = ctx;
+  const { db, _activeWindow, enqueueImport, _loadRecentFiles, _saveRecentFiles, _rebuildMenu, _tabMeta, _pendingIndexTabs, nextTabId, updateController, jobManager, scheduleIndexBuild, refreshMcpManifest } = ctx;
 
   // A dropped/opened directory passes existsSync, so without this guard it reaches parseFile(),
   // matches no extension rule, and dies in parseCSVStream with a raw "EISDIR: illegal operation
@@ -273,6 +273,7 @@ function registerSessionHandlers(safeHandle, safeSend, ctx) {
     } finally {
       // Always clean up metadata even if db.closeTab throws
       _tabMeta.delete(tabId);
+      try { refreshMcpManifest?.(); } catch (_) {}
     }
     return true;
   });

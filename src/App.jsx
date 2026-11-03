@@ -2,6 +2,7 @@
 // Licensed under the Apache License 2.0.
 import { lazy, Suspense, useState, useEffect, useRef, useCallback, useMemo, Fragment } from "react";
 import { createPortal } from "react-dom";
+import { LateralMovementPill, SigmaPill } from "./components/modals/FloatingPills.jsx";
 // ── Extracted constants ──────────────────────────────────────────
 import { ROW_HEIGHT, HEADER_HEIGHT, FILTER_HEIGHT, OVERSCAN, VIRTUAL_WINDOW, VIRTUAL_AHEAD, QUERY_DEBOUNCE, DETAIL_PANEL_HEIGHT_DEFAULT, DETAIL_PANEL_MIN_HEIGHT, DETAIL_PANEL_MAX_HEIGHT, TAG_COL_WIDTH_DEFAULT, TAG_COL_WIDTH_MIN, BKMK_COL_WIDTH, CHECKBOX_COL_WIDTH, VT_COL_WIDTH, EVIDENCE_COL_WIDTH, VT_COMPATIBLE_RE, MAX_PHYSICAL_H, SKELETON_ARM_DELAY } from "./constants/grid.js";
 import { THEMES } from "./constants/themes.js";
@@ -192,6 +193,7 @@ export default function App() {
 
   // ── Zustand: UI state ───────────────────────────────────────────
   const modal = useUIStore((s) => s.modal);
+  const minimizedModals = useUIStore((s) => s.minimizedModals);
   const setModal = useUIStore((s) => s.setModal);
   const setRefreshCallback = useUIStore((s) => s.setRefreshCallback);
   const setInvalidateRowMeta = useUIStore((s) => s.setInvalidateRowMeta);
@@ -3611,6 +3613,7 @@ export default function App() {
           </div>
         )}
         {/* Modal overlay — must render even in empty state for EVTX scanning */}
+        {minimizedModals.some((m) => m.type === "sigma") && <SigmaPill />}
         <Suspense fallback={<ModalChunkFallback th={th} />}>
           {modal?.type === "sigma" && <SigmaRuleModal />}
           {modal?.type === "rdpBitmapCache" && <RdpBitmapCacheModal />}
@@ -4687,6 +4690,7 @@ export default function App() {
       <Suspense fallback={<ModalChunkFallback th={th} />}>
         {/* Lateral Movement Modal */}
         {modal?.type === "lateralMovement" && ct && <LateralMovementModal />}
+        {minimizedModals.some((m) => m.type === "lateralMovement") && ct && <LateralMovementPill />}
         {modal?.type === "triageCollection" && <TriageCollectionModal />}
 
         {/* Persistence Analyzer Modal */}
@@ -4701,6 +4705,7 @@ export default function App() {
         {/* File Activity Heatmap Modal */}
         {modal?.type === "heatmap" && ct && <HeatmapModal />}
         {modal?.type === "sigma" && <SigmaRuleModal />}
+        {minimizedModals.some((m) => m.type === "sigma") && <SigmaPill />}
         {modal?.type === "rdpBitmapCache" && <RdpBitmapCacheModal />}
         {modal?.type === "aiHistoryProfileScan" && <AiHistoryProfileScanModal />}
         {modal?.type === "aiHistoryExtract" && <AiHistoryExtractModal />}

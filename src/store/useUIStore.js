@@ -53,7 +53,60 @@ const useUIStore = create((set) => ({
 
   // ── Modal state ──────────────────────────────────────────────────
   modal: null,
-  setModal: (v) => set(typeof v === "function" ? (s) => ({ modal: v(s.modal) }) : { modal: v }),
+  // Minimized "pill" modals that survive when another modal is opened.
+  // Only lateralMovement and sigma participate; other types are replaced normally.
+  minimizedModals: [],
+
+  setModal: (v) => set((s) => {
+    const PILL_TYPES = new Set(["lateralMovement", "sigma"]);
+    const newModal = typeof v === "function" ? v(s.modal) : v;
+
+    // Opening one pill-type while another pill-type is already present (full or minimized):
+    // save the current one as a minimized pill before replacing it.
+    if (
+      newModal !== null &&
+      s.modal != null &&
+      PILL_TYPES.has(s.modal.type) &&
+      PILL_TYPES.has(newModal.type) &&
+      newModal.type !== s.modal.type
+    ) {
+      return {
+        modal: newModal,
+        minimizedModals: [
+          ...s.minimizedModals.filter((m) => m.type !== s.modal.type),
+          { ...s.modal, minimized: true },
+        ],
+      };
+    }
+
+    // Opening any modal that's currently parked in minimizedModals removes it from there.
+    if (newModal !== null && !newModal.minimized) {
+      return {
+        modal: newModal,
+        minimizedModals: s.minimizedModals.filter((m) => m.type !== newModal.type),
+      };
+    }
+
+    return { modal: newModal };
+  }),
+
+  // Restore a pinned modal to full view, minimizing the current active modal if it's also
+  // a pill-type so it doesn't get lost.
+  restoreMinimizedModal: (type) => set((s) => {
+    const pinned = s.minimizedModals.find((m) => m.type === type);
+    if (!pinned) return {};
+    const PILL_TYPES = new Set(["lateralMovement", "sigma"]);
+    const remaining = s.minimizedModals.filter((m) => m.type !== type);
+    if (s.modal != null && PILL_TYPES.has(s.modal.type)) {
+      remaining.push({ ...s.modal, minimized: true });
+    }
+    return { modal: { ...pinned, minimized: false }, minimizedModals: remaining };
+  }),
+
+  removeMinimizedModal: (type) => set((s) => ({
+    minimizedModals: s.minimizedModals.filter((m) => m.type !== type),
+  })),
+
   updateModal: (type, updater) => set((s) => ({ modal: buildModalUpdate(type, updater)(s.modal) })),
 
   // ── Transient UI ─────────────────────────────────────────────────
