@@ -36,6 +36,7 @@ function PillShell({ defaultBottom, onDragStart, pos, border, children }) {
         border: `1px solid ${border || th.border}`, borderRadius: 10,
         boxShadow: "0 8px 32px rgba(0,0,0,0.45)", display: "flex", alignItems: "center",
         gap: 8, padding: "9px 14px", cursor: "move", userSelect: "none", whiteSpace: "nowrap",
+        minWidth: 340,
       }}>
         {children}
       </div>
@@ -109,7 +110,7 @@ export function ProcessInspectorPill() {
         <path d="M17.5 17.5h.01"/><path d="M14 17.5h3.5v-3.5"/>
       </svg>
       <span style={{ color: th.text, fontSize: 12, fontWeight: 600, fontFamily: "-apple-system, sans-serif" }}>Process Inspector</span>
-      <span style={{ color: th.textMuted, fontSize: 11, fontFamily: "-apple-system, sans-serif" }}>· active</span>
+      <span style={{ color: th.textMuted, fontSize: 11, fontFamily: "-apple-system, sans-serif" }}>· analysis active</span>
       <button onClick={() => restoreMinimizedModal("processTree")} aria-label="Restore Process Inspector" title="Restore"
         style={{ background: "none", border: "none", color: th.textDim, cursor: "pointer", fontSize: 13, padding: "2px 4px", marginLeft: 4, lineHeight: 1 }}>⊞</button>
       <button onClick={() => removeMinimizedModal("processTree")} aria-label="Close"
@@ -132,7 +133,7 @@ export function PersistenceAnalyzerPill() {
         <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
       </svg>
       <span style={{ color: th.text, fontSize: 12, fontWeight: 600, fontFamily: "-apple-system, sans-serif" }}>Persistence Analyzer</span>
-      <span style={{ color: th.textMuted, fontSize: 11, fontFamily: "-apple-system, sans-serif" }}>· active</span>
+      <span style={{ color: th.textMuted, fontSize: 11, fontFamily: "-apple-system, sans-serif" }}>· results ready</span>
       <button onClick={() => restoreMinimizedModal("persistence")} aria-label="Restore Persistence Analyzer" title="Restore"
         style={{ background: "none", border: "none", color: th.textDim, cursor: "pointer", fontSize: 13, padding: "2px 4px", marginLeft: 4, lineHeight: 1 }}>⊞</button>
       <button onClick={() => removeMinimizedModal("persistence")} aria-label="Close"
@@ -156,7 +157,7 @@ export function RdpBitmapCachePill() {
         <circle cx="8" cy="9" r="1.5"/><path d="M21 15l-5-5-4 4-2-2-4 4"/>
       </svg>
       <span style={{ color: th.text, fontSize: 12, fontWeight: 600, fontFamily: "-apple-system, sans-serif" }}>RDP Bitmap Cache</span>
-      <span style={{ color: th.textMuted, fontSize: 11, fontFamily: "-apple-system, sans-serif" }}>· active</span>
+      <span style={{ color: th.textMuted, fontSize: 11, fontFamily: "-apple-system, sans-serif" }}>· extractor active</span>
       <button onClick={() => restoreMinimizedModal("rdpBitmapCache")} aria-label="Restore RDP Bitmap Cache" title="Restore"
         style={{ background: "none", border: "none", color: th.textDim, cursor: "pointer", fontSize: 13, padding: "2px 4px", marginLeft: 4, lineHeight: 1 }}>⊞</button>
       <button onClick={() => removeMinimizedModal("rdpBitmapCache")} aria-label="Close"
@@ -180,7 +181,7 @@ export function AdsPill() {
         <line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="12" y2="17"/>
       </svg>
       <span style={{ color: th.text, fontSize: 12, fontWeight: 600, fontFamily: "-apple-system, sans-serif" }}>ADS Analyzer</span>
-      <span style={{ color: th.textMuted, fontSize: 11, fontFamily: "-apple-system, sans-serif" }}>· active</span>
+      <span style={{ color: th.textMuted, fontSize: 11, fontFamily: "-apple-system, sans-serif" }}>· results ready</span>
       <button onClick={() => restoreMinimizedModal("ads")} aria-label="Restore ADS Analyzer" title="Restore"
         style={{ background: "none", border: "none", color: th.textDim, cursor: "pointer", fontSize: 13, padding: "2px 4px", marginLeft: 4, lineHeight: 1 }}>⊞</button>
       <button onClick={() => removeMinimizedModal("ads")} aria-label="Close"
@@ -203,7 +204,7 @@ export function UsnAnalysisPill() {
         <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
       </svg>
       <span style={{ color: th.text, fontSize: 12, fontWeight: 600, fontFamily: "-apple-system, sans-serif" }}>USN Journal</span>
-      <span style={{ color: th.textMuted, fontSize: 11, fontFamily: "-apple-system, sans-serif" }}>· active</span>
+      <span style={{ color: th.textMuted, fontSize: 11, fontFamily: "-apple-system, sans-serif" }}>· analysis active</span>
       <button onClick={() => restoreMinimizedModal("usnAnalysis")} aria-label="Restore USN Journal Analysis" title="Restore"
         style={{ background: "none", border: "none", color: th.textDim, cursor: "pointer", fontSize: 13, padding: "2px 4px", marginLeft: 4, lineHeight: 1 }}>⊞</button>
       <button onClick={() => removeMinimizedModal("usnAnalysis")} aria-label="Close"

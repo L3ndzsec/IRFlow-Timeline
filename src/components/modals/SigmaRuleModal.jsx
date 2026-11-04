@@ -812,6 +812,7 @@ export default function SigmaRuleModal() {
             cursor: "move",
             userSelect: "none",
             whiteSpace: "nowrap",
+            minWidth: 340,
           }}
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={th.accent} strokeWidth="2" strokeLinecap="round" style={{ flexShrink: 0 }}>

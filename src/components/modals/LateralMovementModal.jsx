@@ -1101,6 +1101,7 @@ export default function LateralMovementModal() {
             cursor: "move",
             userSelect: "none",
             whiteSpace: "nowrap",
+            minWidth: 340,
           }}
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={th.danger} strokeWidth="2" strokeLinecap="round" style={{ flexShrink: 0 }}>
