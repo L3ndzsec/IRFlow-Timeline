@@ -60,6 +60,80 @@ const FOLDER_SCAN_TOOL_MAP = [
   ["continue", "continue"],
 ];
 
+// Fixed subdir names produced by IRFlow's Collect-AIArtifacts.ps1
+const FLAT_COLLECTION_NAMES = {
+  "claude-code-cli": "claude-code",
+  "claude-desktop": "claude-code",
+  "codex": "codex",
+  "grok-build": "grok-build",
+  "gemini-cli": "gemini-cli",
+  "cursor-agent": "cursor",
+  "cursor-ide": "cursor",
+  "chatgpt": "chatgpt",
+  "chatgpt-local": "chatgpt",
+  "copilot-cli": "copilot",
+  "windsurf": "windsurf",
+  "continue": "continue",
+};
+
+function flatToolFromDirName(name) {
+  if (FLAT_COLLECTION_NAMES[name]) return FLAT_COLLECTION_NAMES[name];
+  if (/^copilot-.+-(workspaceStorage|emptyWindow)$/i.test(name)) return "copilot";
+  if (/^chatgpt-msstore-/i.test(name)) return "chatgpt";
+  return null;
+}
+
+/**
+ * Identify AI roots from a flat-collection layout (IRFlow Collect-AIArtifacts.ps1 output).
+ * Tries irflow-manifest.json first; falls back to known directory-name patterns.
+ */
+function discoverFlatCollection(scanRoot) {
+  const roots = [];
+  const seen = new Set();
+
+  // Manifest-guided pass: exact tool attribution from collected file entries
+  const manifestPath = path.join(scanRoot, "irflow-manifest.json");
+  if (fs.existsSync(manifestPath)) {
+    try {
+      const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+      const subdirToolMap = new Map();
+      if (Array.isArray(manifest.files)) {
+        for (const f of manifest.files) {
+          if (!f.dest || !f.tool || f.status !== "collected") continue;
+          const rel = path.relative(scanRoot, f.dest);
+          if (rel.startsWith("..")) continue;
+          const subdir = rel.split(/[/\\]/)[0];
+          if (subdir && !subdirToolMap.has(subdir)) subdirToolMap.set(subdir, f.tool);
+        }
+      }
+      for (const [subdir, tool] of subdirToolMap) {
+        const fullPath = path.join(scanRoot, subdir);
+        if (!fs.existsSync(fullPath)) continue;
+        const key = `${tool}:${fullPath}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        roots.push({ tool, path: fullPath, endpointUser: "" });
+      }
+      if (roots.length > 0) return roots;
+    } catch { /* fall through to name-pattern matching */ }
+  }
+
+  // Name-pattern fallback for known IRFlow collection subdir names
+  let entries;
+  try { entries = fs.readdirSync(scanRoot, { withFileTypes: true }); } catch { return roots; }
+  for (const e of entries) {
+    if (!e.isDirectory()) continue;
+    const tool = flatToolFromDirName(e.name);
+    if (!tool) continue;
+    const full = path.join(scanRoot, e.name);
+    const key = `${tool}:${full}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    roots.push({ tool, path: full, endpointUser: "" });
+  }
+  return roots;
+}
+
 function realPathKey(p) {
   try {
     return fs.realpathSync.native ? fs.realpathSync.native(p) : fs.realpathSync(p);
@@ -147,6 +221,29 @@ async function discoverAiHistoryInFolder(scanRoot, options = {}) {
       report({
         logLine: `  ✓ ${AI_HISTORY_TOOLS[tool]?.label || tool}${endpointUser ? ` (${endpointUser})` : ""}: ${hit.path}`,
       });
+    }
+  }
+
+  // If the tree walk found nothing, try flat-collection layout (IRFlow Collect-AIArtifacts.ps1 output)
+  if (roots.length === 0) {
+    report({
+      phase: "discovering",
+      percent: 95,
+      statusDetail: "Checking for flat-collection layout…",
+      logLine: "No profile tree found — checking for flat-collection layout (IRFlow collection script output)…",
+    });
+    const flatRoots = discoverFlatCollection(resolvedRoot);
+    for (const r of flatRoots) {
+      hits += 1;
+      const label = AI_HISTORY_TOOLS[r.tool]?.label || r.tool;
+      pushRoot(roots, seen, r.tool, r.path, {
+        endpointUser: r.endpointUser || "",
+        endpointHost: path.basename(resolvedRoot),
+      });
+      report({ logLine: `  ✓ ${label}: ${r.path}` });
+    }
+    if (flatRoots.length > 0) {
+      report({ logLine: `Flat-collection layout: ${flatRoots.length} source(s) identified.` });
     }
   }
 
